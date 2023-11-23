@@ -5,7 +5,7 @@ from langchain.vectorstores import AstraDB
 
 from common_constants import (
     FEATURED_VOTE_THRESHOLD,
-    REVIEWS_TABLE_NAME,
+    REVIEWS_COLLECTION_NAME,
     REVIEW_VECTOR_COLLECTION_NAME,
 )
 from utils.models import HotelReview, UserProfile
@@ -35,7 +35,7 @@ def get_review_vectorstore(embeddings, astra_db_client):
 # Entry point to select reviews for the general (base) hotel summary
 def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
     astra_db_client = get_astra_db_client()
-    review_col = astra_db_client.collection(REVIEWS_TABLE_NAME)
+    review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
 
     review_dict = {}
 
@@ -121,7 +121,7 @@ def select_hotel_reviews_for_user(
 
 def select_review_count_by_hotel(hotel_id: str) -> int:
     astra_db_client = get_astra_db_client()
-    review_col = astra_db_client.collection(REVIEWS_TABLE_NAME)
+    review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
 
     return len(list(review_col.paginated_find(
         filter={
@@ -149,16 +149,16 @@ insert_review_stmt = None
 
 # Entry point for when we want to add a review
 # - Generates an id for the new review
-# - Stores the review in the non-vectorised table
-# - Embeds the review and then stores it in the vectorised table
+# - Stores the review in the non-vectorised collection
+# - Embeds the review and then stores it in the vectorised collection
 def insert_review_for_hotel(
     hotel_id: str, review_title: str, review_body: str, review_rating: int
 ):
     review_id = generate_review_id()
-    insert_into_reviews_table(
+    insert_into_reviews_collection(
         hotel_id, review_id, review_title, review_body, review_rating
     )
-    insert_into_review_vector_table(
+    insert_into_review_vector_collection(
         hotel_id, review_id, review_title, review_body, review_rating
     )
 
@@ -178,8 +178,8 @@ def choose_featured(num_upvotes: int) -> int:
         return 0
 
 
-# Inserts a new review into the non-vectorized reviews table
-def insert_into_reviews_table(
+# Inserts a new review into the non-vectorised reviews collection
+def insert_into_reviews_collection(
     hotel_id: str,
     review_id: str,
     review_title: str,
@@ -187,7 +187,7 @@ def insert_into_reviews_table(
     review_rating: int,
 ):
     astra_db_client = get_astra_db_client()
-    review_col = astra_db_client.collection(REVIEWS_TABLE_NAME)
+    review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
 
     date_added = datetime.datetime.now()
     featured = choose_featured(random.randint(1, 21))
@@ -203,8 +203,9 @@ def insert_into_reviews_table(
     })
 
 
-# Inserts a new review into the vectorized reviews table, using a VectorStore of type Cassandra from LangChain
-def insert_into_review_vector_table(
+# Inserts a new review into the vectorised reviews collection,
+# using a VectorStore of type AstraDB from LangChain
+def insert_into_review_vector_collection(
     hotel_id: str,
     review_id: str,
     review_title: str,

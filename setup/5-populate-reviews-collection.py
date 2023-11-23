@@ -3,7 +3,7 @@ import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 import datetime
 
-from common_constants import REVIEWS_TABLE_NAME
+from common_constants import REVIEWS_COLLECTION_NAME
 from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERTION_BATCH_SIZE, INSERTION_BATCH_CONCURRENCY
 from utils.reviews import choose_featured
 from utils.db import get_astra_db_client
@@ -15,8 +15,8 @@ this_dir = os.path.abspath(os.path.dirname(__file__))
 astra_db_client = get_astra_db_client()
 
 
-def create_reviews_table():
-    return astra_db_client.create_collection(REVIEWS_TABLE_NAME)
+def create_reviews_collection():
+    return astra_db_client.create_collection(REVIEWS_COLLECTION_NAME)
 
 
 def parse_date(date_str) -> datetime.datetime:
@@ -24,7 +24,7 @@ def parse_date(date_str) -> datetime.datetime:
     return datetime.datetime.strptime(trunc_date, "%Y-%m-%d")
 
 
-def populate_reviews_table_from_csv(rev_col):
+def populate_reviews_collection_from_csv(rev_col):
     hotel_review_file_path = os.path.join(this_dir, HOTEL_REVIEW_FILE_NAME)
     hotel_review_data = pd.read_csv(hotel_review_file_path)
 
@@ -76,9 +76,9 @@ def populate_reviews_table_from_csv(rev_col):
             )
         )
 
-    print(f"[5-populate-reviews-table.py] Inserted {len(review_df)} reviews")
+    print(f"[5-populate-reviews-collection.py] Inserted {len(review_df)} reviews")
 
 
 if __name__ == "__main__":
-    rev_col = create_reviews_table()
-    populate_reviews_table_from_csv(rev_col)
+    rev_col = create_reviews_collection()
+    populate_reviews_collection_from_csv(rev_col)

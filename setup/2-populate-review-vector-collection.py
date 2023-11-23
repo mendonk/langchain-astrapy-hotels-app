@@ -115,4 +115,4 @@ if __name__ == "__main__":
         batch_concurrency=args.c,
     )
 
-    print(f"\n[2-populate-review-vector-table.py] Finished. {len(inserted_ids)} rows written.")
+    print(f"\n[2-populate-review-vector-collection.py] Finished. {len(inserted_ids)} rows written.")

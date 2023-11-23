@@ -6,7 +6,7 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain.docstore.document import Document
 
 from utils.db import get_astra_db_client
-from common_constants import USERS_TABLE_NAME
+from common_constants import USERS_COLLECTION_NAME
 
 from utils.models import UserProfile
 from utils.ai import get_llm
@@ -14,7 +14,7 @@ from utils.ai import get_llm
 
 def read_user_profile(user_id) -> Union[UserProfile, None]:
     astra_db_client = get_astra_db_client()
-    users_col = astra_db_client.collection(USERS_TABLE_NAME)
+    users_col = astra_db_client.collection(USERS_COLLECTION_NAME)
 
     user_doc = users_col.find_one(
         filter={
@@ -40,7 +40,7 @@ def read_user_profile(user_id) -> Union[UserProfile, None]:
 
 def write_user_profile(user_id, user_profile):
     astra_db_client = get_astra_db_client()
-    users_col = astra_db_client.collection(USERS_TABLE_NAME)
+    users_col = astra_db_client.collection(USERS_COLLECTION_NAME)
 
     users_col.upsert(
         {
@@ -104,7 +104,7 @@ def update_user_travel_profile_summary(user_id, user_profile):
 
     # write:
     astra_db_client = get_astra_db_client()
-    users_col = astra_db_client.collection(USERS_TABLE_NAME)
+    users_col = astra_db_client.collection(USERS_COLLECTION_NAME)
 
     users_col.find_one_and_update(
         filter={
