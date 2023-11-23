@@ -9,9 +9,9 @@ from common_constants import (
     REVIEW_VECTOR_COLLECTION_NAME,
 )
 from utils.models import HotelReview, UserProfile
-
+from utils.dates import dt_to_int
 from utils.ai import get_embeddings
-# from utils.db import get_session, get_keyspace FIXME
+from utils.db import get_astra_db_client
 
 from typing import List
 
@@ -32,43 +32,59 @@ def get_review_vectorstore(embeddings, astra_db_client):
 
 # ### SELECTING REVIEWS
 
-# Prepared statements for selecting reviews
-select_recent_reviews_stmt = None
-select_featured_reviews_stmt = None
-select_review_count_by_hotel_stmt = None
-
-
 # Entry point to select reviews for the general (base) hotel summary
 def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
-    session = get_session()
-    keyspace = get_keyspace()
+    astra_db_client = get_astra_db_client()
+    review_col = astra_db_client.collection(REVIEWS_TABLE_NAME)
 
     review_dict = {}
 
-    global select_recent_reviews_stmt
-    if select_recent_reviews_stmt is None:
-        select_recent_reviews_stmt = session.prepare(
-            f"SELECT id, title, body, rating FROM {keyspace}.{REVIEWS_TABLE_NAME} WHERE hotel_id = ? LIMIT 3"
-        )
+    recent_review_docs = review_col.find(
+        filter={
+            "hotel_id": hotel_id,
+        },
+        projection={
+            "_id": 1,
+            "title": 1,
+            "body": 1,
+            "rating": 1,
+        },
+        options={
+            "limit": 3,
+        },
+    )["data"]["documents"]
 
-    rows_recent = session.execute(select_recent_reviews_stmt, (hotel_id,))
-    for row in rows_recent:
-        review_dict[row.id] = HotelReview(
-            id=row.id, title=row.title, body=row.body, rating=row.rating
-        )
+    for recent_review_doc in recent_review_docs:
+        review_dict[recent_review_doc["_id"]] = HotelReview(
+            id=recent_review_doc["_id"],
+            title=recent_review_doc["title"],
+            body=recent_review_doc["body"],
+            rating=recent_review_doc["rating"],
+       )
 
-    global select_featured_reviews_stmt
-    if select_featured_reviews_stmt is None:
-        select_featured_reviews_stmt = session.prepare(
-            f"SELECT id, title, body, rating FROM {keyspace}.{REVIEWS_TABLE_NAME} "
-            f" WHERE hotel_id = ? and featured = 1 LIMIT 3"
-        )
+    featured_review_docs = review_col.find(
+        filter={
+            "hotel_id": hotel_id,
+            "featured": 1,
+        },
+        projection={
+            "_id": 1,
+            "title": 1,
+            "body": 1,
+            "rating": 1,
+        },
+        options={
+            "limit": 3,
+        },
+    )["data"]["documents"]
 
-    rows_featured = session.execute(select_recent_reviews_stmt, (hotel_id,))
-    for row in rows_featured:
-        review_dict[row.id] = HotelReview(
-            id=row.id, title=row.title, body=row.body, rating=row.rating
-        )
+    for featured_review_doc in featured_review_docs:
+        review_dict[featured_review_doc["_id"]] = HotelReview(
+            id=featured_review_doc["_id"],
+            title=featured_review_doc["title"],
+            body=featured_review_doc["body"],
+            rating=featured_review_doc["rating"],
+       )
 
     return list(review_dict.values())
 
@@ -76,15 +92,17 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
 def select_hotel_reviews_for_user(
     hotel_id: str, user_travel_profile_summary: str
 ) -> List[HotelReview]:
+    astra_db_client = get_astra_db_client()
     review_store = get_review_vectorstore(
         embeddings=get_embeddings(),
+        astra_db_client=astra_db_client,
     )
 
     review_data = review_store.similarity_search_with_score_id(
-        query=user_travel_profile_summary, k=3, partition_id=hotel_id
+        query=user_travel_profile_summary,
+        k=3,
+        filter={"hotel_id": hotel_id},
     )
-
-    # title = review_doc.metadata["title"]  TODO
 
     reviews = [
         HotelReview(
@@ -92,7 +110,6 @@ def select_hotel_reviews_for_user(
             body=extract_review_body_from_doc_text(
                 review_doc.page_content, review_doc.metadata["title"]
             ),
-            # was: body=review_doc.page_content[len(review_doc.metadata["title"].strip())+1:].strip(),
             rating=float(review_doc.metadata["rating"]),
             id=review_id,
         )
@@ -103,16 +120,18 @@ def select_hotel_reviews_for_user(
 
 
 def select_review_count_by_hotel(hotel_id: str) -> int:
-    session = get_session()
-    keyspace = get_keyspace()
+    astra_db_client = get_astra_db_client()
+    review_col = astra_db_client.collection(REVIEWS_TABLE_NAME)
 
-    global select_review_count_by_hotel_stmt
-    if select_review_count_by_hotel_stmt is None:
-        select_review_count_by_hotel_stmt = session.prepare(f"SELECT COUNT(id) AS num_reviews FROM {keyspace}.{REVIEWS_TABLE_NAME} "
-                                                            f"WHERE hotel_id = ?")
-
-    row = session.execute(select_review_count_by_hotel_stmt, (hotel_id,)).one()
-    return row.num_reviews
+    return len(list(review_col.paginated_find(
+        filter={
+            "hotel_id": hotel_id,
+        },
+        # Current workaround to "get me just _id" projection:
+        projection={
+            "not_a_field": 1,
+        }
+    )))
 
 
 # Extracts the review body from the text found in the document,
@@ -167,31 +186,21 @@ def insert_into_reviews_table(
     review_body: str,
     review_rating: int,
 ):
-    session = get_session()
-    keyspace = get_keyspace()
-
-    global insert_review_stmt
-    if insert_review_stmt is None:
-        insert_review_stmt = session.prepare(
-            f"""INSERT INTO {keyspace}.{REVIEWS_TABLE_NAME} (hotel_id, date_added, id, title, body, rating, featured) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)"""
-        )
+    astra_db_client = get_astra_db_client()
+    review_col = astra_db_client.collection(REVIEWS_TABLE_NAME)
 
     date_added = datetime.datetime.now()
     featured = choose_featured(random.randint(1, 21))
 
-    session.execute(
-        insert_review_stmt,
-        (
-            hotel_id,
-            date_added,
-            review_id,
-            review_title,
-            review_body,
-            review_rating,
-            featured,
-        ),
-    )
+    review_col.insert_one({
+        "_id": review_id,
+        "hotel_id": hotel_id,
+        "date_added_int": dt_to_int(date_added),
+        "title": review_title,
+        "body": review_body,
+        "rating": review_rating,
+        "featured": featured,
+    })
 
 
 # Inserts a new review into the vectorized reviews table, using a VectorStore of type Cassandra from LangChain
@@ -204,6 +213,7 @@ def insert_into_review_vector_table(
 ):
     review_store = get_review_vectorstore(
         embeddings=get_embeddings(),
+        astra_db_client=get_astra_db_client(),
     )
 
     review_metadata = {
@@ -216,18 +226,4 @@ def insert_into_review_vector_table(
         texts=[format_review_content_for_embedding(review_title, review_body)],
         metadatas=[review_metadata],
         ids=[review_id],
-        partition_id=hotel_id,
     )
-
-
-# TODO remove!
-if __name__ == "__main__":
-    # "AWE2EbkcIxWefVJwyEsr" --> 105
-    # "AV3HoVhXa4HuVbed-zd_" --> 2
-    # "ejhrfgjwhw" --> 0 (hotel not found)
-    print(
-        select_review_count_by_hotel(
-            hotel_id="AV3HoVhXa4HuVbed-zd_"
-        )
-    )
-

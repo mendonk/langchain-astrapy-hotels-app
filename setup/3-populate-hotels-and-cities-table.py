@@ -90,10 +90,9 @@ def populate_hotel_table_from_csv(hotel_col):
 
     docs_to_insert = (
         {
-            # our _id will be '{country}/{city}/{id}' consistently
-            "_id": f"{row['country']}/{row['city']}/{row['id']}",
+            # it so happens that the hotel ID is globally unique
+            "_id": row["id"],
             # the data:
-            "id": row["id"],
             "name": row["name"],
             "city": row["city"],
             "country": row["country"],

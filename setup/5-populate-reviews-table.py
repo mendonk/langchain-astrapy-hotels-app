@@ -50,8 +50,8 @@ def populate_reviews_table_from_csv(rev_col):
     # Caution: datetimes are at play here
     docs_to_insert = (
         {
-            # our _id will be '{hotel_id}/{date_added_int}/{id}' consistently
-            "_id": f"{row['hotel_id']}/{dt_to_int(parse_date(row['date_added']))}/{row['id']}",
+            # it so happens that the review ID is globally unique
+            "_id": row["id"],
             # the data:
             "hotel_id": row["hotel_id"],
             "date_added_int": dt_to_int(parse_date(row["date_added"])),
