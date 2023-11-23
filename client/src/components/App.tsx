@@ -29,7 +29,7 @@ function App() {
 
   return (
     <div className="App">
-      <MDBNavbar expand='lg' light bgColor='light'>
+      <MDBNavbar expand='lg' light bgColor='primary'>
         <MDBContainer fluid>
           <MDBNavbarBrand>
             <img

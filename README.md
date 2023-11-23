@@ -42,6 +42,8 @@ In the meantime, the app will open in the top panel.
 
 <a href="https://gitpod.io/#https://github.com/hemidactylus/langchain-astrapy-hotels-app"><img src="images/open_in_gitpod.svg" /></a>
 
+Once you see the `Uvicorn running on [address:port]` message,
+the API is ready and you can start using the client.
 
 ## How-to (local run)
 
@@ -117,7 +119,8 @@ uvicorn api:app
 # (optionally add "--reload")
 ```
 
-Once you see the `Uvicorn running on [address:port]` message, the API is ready.
+Once you see the `Uvicorn running on [address:port]` message,
+the API is ready and you can start using the client.
 
 ### Client
 
