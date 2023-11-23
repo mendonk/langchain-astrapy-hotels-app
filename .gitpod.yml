@@ -2,18 +2,17 @@ image: gitpod/workspace-full:2023-02-27-14-39-56
 tasks:
   - name: app-console
     before: |
-      cd /workspace/langchain-hotels-app/client
+      cd /workspace/langchain-astrapy-hotels-app/client
       npm install
     command: |
-      cd /workspace/langchain-hotels-app/client
+      cd /workspace/langchain-astrapy-hotels-app/client
       REACT_APP_API_BASE_URL=`gp url 8000` npm start
   - name: api-console
     before: |
-      cd /workspace/langchain-hotels-app
+      cd /workspace/langchain-astrapy-hotels-app
       mkdir .gitpod_logs
-      # curl -Ls "https://dtsx.io/get-astra-cli" | bash | tee -a /workspace/langchain-hotels-app/.gitpod_logs/astra-cli-install.log
       echo -e "\n\n** NOW YOU CAN RUN THE COMMAND scripts/prepare_and_launch.sh **"
-    command: /workspace/langchain-hotels-app/scripts/prepare_and_launch.sh | tee -a /workspace/langchain-hotels-app/.gitpod_logs/dotenv-setup.log
+    command: /workspace/langchain-astrapy-hotels-app/scripts/prepare_and_launch.sh | tee -a /workspace/langchain-astrapy-hotels-app/.gitpod_logs/prepare-and-launch.log
 ports:
   - port: 3000
     onOpen: open-preview

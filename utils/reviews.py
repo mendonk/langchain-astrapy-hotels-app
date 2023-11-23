@@ -1,7 +1,7 @@
 """Utilities to manipulate reviews"""
 import random
 import uuid, datetime
-from langchain.vectorstores import AstraDB
+from langchain.vectorstores import AstraDB as LCAstraDB
 
 from common_constants import (
     FEATURED_VOTE_THRESHOLD,
@@ -22,7 +22,7 @@ review_vectorstore = None
 def get_review_vectorstore(embeddings, astra_db_client):
     global review_vectorstore
     if review_vectorstore is None:
-        review_vectorstore = AstraDB(
+        review_vectorstore = LCAstraDB(
             embedding=embeddings,
             collection_name=REVIEW_VECTOR_COLLECTION_NAME,
             astra_db_client=astra_db_client,
@@ -205,6 +205,7 @@ def insert_into_reviews_collection(
 
 # Inserts a new review into the vectorised reviews collection,
 # using a VectorStore of type AstraDB from LangChain
+# (class imported as 'LCAstraDB' to avoid collision with AstraPy's class)
 def insert_into_review_vector_collection(
     hotel_id: str,
     review_id: str,
