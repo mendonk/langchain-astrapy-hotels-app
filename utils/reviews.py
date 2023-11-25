@@ -39,20 +39,19 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
 
     review_dict = {}
 
-    recent_review_docs = review_col.find(
+    recent_review_docs = review_col.vector_find(
+        vector=[1],
+        limit=3,
         filter={
             "hotel_id": hotel_id,
         },
-        projection={
-            "_id": 1,
-            "title": 1,
-            "body": 1,
-            "rating": 1,
-        },
-        options={
-            "limit": 3,
-        },
-    )["data"]["documents"]
+        fields=[
+            "_id",
+            "title",
+            "body",
+            "rating",
+        ],
+    )
 
     for recent_review_doc in recent_review_docs:
         review_dict[recent_review_doc["_id"]] = HotelReview(
@@ -62,21 +61,20 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             rating=recent_review_doc["rating"],
        )
 
-    featured_review_docs = review_col.find(
+    featured_review_docs = review_col.vector_find(
+        vector=[1],
+        limit=3,
         filter={
             "hotel_id": hotel_id,
             "featured": 1,
         },
-        projection={
-            "_id": 1,
-            "title": 1,
-            "body": 1,
-            "rating": 1,
-        },
-        options={
-            "limit": 3,
-        },
-    )["data"]["documents"]
+        fields=[
+            "_id",
+            "title",
+            "body",
+            "rating",
+        ],
+    )
 
     for featured_review_doc in featured_review_docs:
         review_dict[featured_review_doc["_id"]] = HotelReview(

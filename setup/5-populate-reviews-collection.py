@@ -16,7 +16,11 @@ astra_db_client = get_astra_db_client()
 
 
 def create_reviews_collection():
-    return astra_db_client.create_collection(REVIEWS_COLLECTION_NAME)
+    return astra_db_client.create_collection(
+        REVIEWS_COLLECTION_NAME,
+        dimension=1,
+        metric="dot_product",
+    )
 
 
 def parse_date(date_str) -> datetime.datetime:
@@ -55,6 +59,7 @@ def populate_reviews_collection_from_csv(rev_col):
             # the data:
             "hotel_id": row["hotel_id"],
             "date_added_int": dt_to_int(parse_date(row["date_added"])),
+            "$vector": [dt_to_int(parse_date(row["date_added"]))],
             "id": row["id"],
             "title": row["title"],
             "body": row["body"],
