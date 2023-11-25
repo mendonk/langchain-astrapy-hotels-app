@@ -65,7 +65,6 @@ def populate_reviews_collection_from_csv(rev_col):
             "body": row["body"],
             "rating": row["rating"],
             "featured": choose_featured(row["upvotes"]),
-
         }
         for _, row in review_df.iterrows()
     )
