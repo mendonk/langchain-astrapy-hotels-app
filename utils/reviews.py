@@ -194,6 +194,7 @@ def insert_into_reviews_collection(
         "_id": review_id,
         "hotel_id": hotel_id,
         "date_added_int": dt_to_int(date_added),
+        "$vector": [dt_to_int(date_added)],
         "title": review_title,
         "body": review_body,
         "rating": review_rating,
