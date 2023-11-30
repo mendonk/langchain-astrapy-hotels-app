@@ -123,15 +123,31 @@ def select_review_count_by_hotel(hotel_id: str) -> int:
     astra_db_client = get_astra_db_client()
     review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
 
-    return len(list(review_col.paginated_find(
-        filter={
-            "hotel_id": hotel_id,
-        },
-        # Current workaround to "get me just _id" projection:
-        projection={
-            "not_a_field": 1,
-        }
-    )))
+    
+    from astrapy.utils import make_payload
+
+    filter={
+        "hotel_id": hotel_id,
+    }
+    # Current workaround to "get me just _id" projection:
+    # projection={
+    #     "not_a_field": 1,
+    # }
+
+    json_query = make_payload(
+        top_level="countDocuments",
+        filter=filter,
+        # projection=projection,
+        # options=options,
+        # sort=sort,
+    )
+
+    response = review_col._request(
+        json_data=json_query,
+        path=review_col.base_path,
+    )
+
+    return response["status"]["count"]
 
 
 # Extracts the review body from the text found in the document,
