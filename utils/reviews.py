@@ -143,10 +143,6 @@ def extract_review_body_from_doc_text(review_doc_text: str, review_title: str) -
 
 # ### ADDING REVIEWS
 
-# Prepared statement for inserting reviews
-insert_review_stmt = None
-
-
 # Entry point for when we want to add a review
 # - Generates an id for the new review
 # - Stores the review in the non-vectorised collection
