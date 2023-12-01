@@ -1,3 +1,5 @@
+import os
+
 from typing import List
 
 from langchain.prompts import PromptTemplate
@@ -48,7 +50,9 @@ def summarize_reviews_for_user(
     populated_prompt = query_prompt_template.format(
         profile_summary=travel_profile_summary, hotel_reviews=concatenated_reviews
     )
-    print(populated_prompt)
+
+    if "TERSE_LOGGING" not in os.environ:
+        print(populated_prompt)
 
     chain = load_summarize_chain(llm=summarizing_llm, chain_type="stuff")
     docs = [Document(page_content=populated_prompt)]
@@ -80,7 +84,8 @@ def summarize_reviews_for_hotel(reviews: List[HotelReview]) -> str:
 
     query_prompt_template = PromptTemplate.from_template(prompt_template)
     populated_prompt = query_prompt_template.format(hotel_reviews=concatenated_reviews)
-    print(populated_prompt)
+    if "TERSE_LOGGING" not in os.environ:
+        print(populated_prompt)
 
     chain = load_summarize_chain(llm=summarizing_llm, chain_type="stuff")
     docs = [Document(page_content=populated_prompt)]

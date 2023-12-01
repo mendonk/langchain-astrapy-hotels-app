@@ -43,6 +43,9 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
         filter={
             "hotel_id": hotel_id,
         },
+        sort={
+            "date_added_int": -1,
+        },
         projection={
             "_id": 1,
             "title": 1,
@@ -66,6 +69,9 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
         filter={
             "hotel_id": hotel_id,
             "featured": 1,
+        },
+        sort={
+            "date_added_int": -1,
         },
         projection={
             "_id": 1,
