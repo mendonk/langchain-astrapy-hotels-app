@@ -9,7 +9,7 @@ from common_constants import (
     REVIEW_VECTOR_COLLECTION_NAME,
 )
 from utils.models import HotelReview, UserProfile
-from utils.dates import dt_to_int
+from utils.dates import datetime_to_json_block, restore_doc_dates
 from utils.ai import get_embeddings
 from utils.db import get_astra_db_client
 
@@ -39,23 +39,25 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
 
     review_dict = {}
 
-    recent_review_docs = review_col.find(
+    _recent_review_docs = review_col.find(
         filter={
             "hotel_id": hotel_id,
         },
         sort={
-            "date_added_int": -1,
+            "date_added": -1,
         },
         projection={
             "_id": 1,
             "title": 1,
             "body": 1,
             "rating": 1,
+            "date_added": 1,
         },
         options={
             "limit": 3,
         },
     )["data"]["documents"]
+    recent_review_docs = [restore_doc_dates(doc) for doc in _recent_review_docs]
 
     for recent_review_doc in recent_review_docs:
         review_dict[recent_review_doc["_id"]] = HotelReview(
@@ -65,24 +67,26 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             rating=recent_review_doc["rating"],
        )
 
-    featured_review_docs = review_col.find(
+    _featured_review_docs = review_col.find(
         filter={
             "hotel_id": hotel_id,
             "featured": 1,
         },
         sort={
-            "date_added_int": -1,
+            "date_added": -1,
         },
         projection={
             "_id": 1,
             "title": 1,
             "body": 1,
             "rating": 1,
+            "date_added": 1,
         },
         options={
             "limit": 3,
         },
     )["data"]["documents"]
+    featured_review_docs = [restore_doc_dates(doc) for doc in _featured_review_docs]
 
     for featured_review_doc in featured_review_docs:
         review_dict[featured_review_doc["_id"]] = HotelReview(
@@ -197,7 +201,7 @@ def insert_into_reviews_collection(
     review_col.insert_one({
         "_id": review_id,
         "hotel_id": hotel_id,
-        "date_added_int": dt_to_int(date_added),
+        "date_added": datetime_to_json_block(date_added),
         "title": review_title,
         "body": review_body,
         "rating": review_rating,

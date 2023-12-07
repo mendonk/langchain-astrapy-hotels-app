@@ -8,7 +8,7 @@ from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERTION_BATCH_SIZE, 
 from utils.reviews import choose_featured
 from utils.db import get_astra_db_client
 from utils.batching import batch_iterable
-from utils.dates import dt_to_int
+from utils.dates import datetime_to_json_block
 
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -54,7 +54,7 @@ def populate_reviews_collection_from_csv(rev_col):
             "_id": row["id"],
             # the data:
             "hotel_id": row["hotel_id"],
-            "date_added_int": dt_to_int(parse_date(row["date_added"])),
+            "date_added": datetime_to_json_block(parse_date(row["date_added"])),
             "id": row["id"],
             "title": row["title"],
             "body": row["body"],
