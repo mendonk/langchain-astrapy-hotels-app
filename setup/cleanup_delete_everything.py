@@ -1,6 +1,7 @@
 from common_constants import HOTELS_COLLECTION_NAME, CITIES_COLLECTION_NAME, REVIEWS_COLLECTION_NAME, REVIEW_VECTOR_COLLECTION_NAME, USERS_COLLECTION_NAME
 from utils.db import get_astra_db_client
 
+# Get the Astra DB client
 db = get_astra_db_client()
 
 # List of collection names to delete
