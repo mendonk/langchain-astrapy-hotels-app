@@ -1,12 +1,12 @@
 import os
 from dotenv import find_dotenv, load_dotenv
 
-import langchain
-from langchain.llms import OpenAI
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.cache import AstraDBCache
+from langchain.globals import set_llm_cache
+from langchain_openai.llms import OpenAI
+from langchain_openai.embeddings import OpenAIEmbeddings
+from langchain_astradb.cache import AstraDBCache
 
-from utils.db import get_astra_db_client
+from utils.db import get_astra_credentials
 
 
 LLM_PROVIDER = "OpenAI"
@@ -41,9 +41,15 @@ def get_embeddings():
 def enable_llm_cache():
     # This is a strange trick to circumvent the 5-collection limit
     # well... 'circumvent' actually means we use TWO DATABASES lol
-    astra_db_client2 = get_astra_db_client(alternative_db=True)
-    if astra_db_client2:
-        langchain.llm_cache = AstraDBCache(astra_db_client=astra_db_client2)
+    astra_credentials_alt = get_astra_credentials(alternative_db=True)
+    if astra_credentials_alt:
+        set_llm_cache(
+            AstraDBCache(
+                api_endpoint=astra_credentials_alt["api_endpoint"],
+                token=astra_credentials_alt["token"],
+                namespace=astra_credentials_alt["namespace"],
+            )
+        )
     else:
         print("\n\n   *** NO LLM CACHING AVAILABLE ***\n\n")
 

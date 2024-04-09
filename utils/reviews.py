@@ -1,7 +1,7 @@
 """Utilities to manipulate reviews"""
 import random
 import uuid, datetime
-from langchain.vectorstores import AstraDB as LCAstraDB
+from langchain_astradb.vectorstores import AstraDBVectorStore
 
 from common_constants import (
     FEATURED_VOTE_THRESHOLD,
@@ -9,9 +9,8 @@ from common_constants import (
     REVIEW_VECTOR_COLLECTION_NAME,
 )
 from utils.models import HotelReview, UserProfile
-from utils.dates import datetime_to_json_block, restore_doc_dates
 from utils.ai import get_embeddings
-from utils.db import get_astra_db_client
+from utils.db import get_database
 
 from typing import List
 
@@ -19,13 +18,15 @@ from typing import List
 review_vectorstore = None
 
 
-def get_review_vectorstore(embeddings, astra_db_client):
+def get_review_vectorstore(embeddings, api_endpoint, token, namespace):
     global review_vectorstore
     if review_vectorstore is None:
-        review_vectorstore = LCAstraDB(
+        review_vectorstore = AstraDBVectorStore(
             embedding=embeddings,
             collection_name=REVIEW_VECTOR_COLLECTION_NAME,
-            astra_db_client=astra_db_client,
+            api_endpoint=api_endpoint,
+            token=token,
+            namespace=namespace,
         )
     return review_vectorstore
 
@@ -34,7 +35,7 @@ def get_review_vectorstore(embeddings, astra_db_client):
 
 # Entry point to select reviews for the general (base) hotel summary
 def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
-    astra_db_client = get_astra_db_client()
+    astra_db_client = get_database()
     review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
 
     review_dict = {}
@@ -57,7 +58,7 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             "limit": 3,
         },
     )["data"]["documents"]
-    recent_review_docs = [restore_doc_dates(doc) for doc in _recent_review_docs]
+    recent_review_docs = list(_recent_review_docs)
 
     for recent_review_doc in recent_review_docs:
         review_dict[recent_review_doc["_id"]] = HotelReview(
@@ -86,7 +87,7 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             "limit": 3,
         },
     )["data"]["documents"]
-    featured_review_docs = [restore_doc_dates(doc) for doc in _featured_review_docs]
+    featured_review_docs = list(_featured_review_docs)
 
     for featured_review_doc in featured_review_docs:
         review_dict[featured_review_doc["_id"]] = HotelReview(
@@ -201,7 +202,7 @@ def insert_into_reviews_collection(
     review_col.insert_one({
         "_id": review_id,
         "hotel_id": hotel_id,
-        "date_added": datetime_to_json_block(date_added),
+        "date_added": date_added,
         "title": review_title,
         "body": review_body,
         "rating": review_rating,

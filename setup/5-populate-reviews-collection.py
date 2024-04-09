@@ -6,17 +6,19 @@ import datetime
 from common_constants import REVIEWS_COLLECTION_NAME
 from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERTION_BATCH_SIZE, INSERTION_BATCH_CONCURRENCY
 from utils.reviews import choose_featured
-from utils.db import get_astra_db_client
+from utils.db import get_database
 from utils.batching import batch_iterable
-from utils.dates import datetime_to_json_block
 
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
-astra_db_client = get_astra_db_client()
+database = get_database()
 
 
 def create_reviews_collection():
-    return astra_db_client.create_collection(REVIEWS_COLLECTION_NAME)
+    return database.create_collection(
+        REVIEWS_COLLECTION_NAME,
+        indexing={"allow": ["_id", "hotel_id"]},
+    )
 
 
 def parse_date(date_str) -> datetime.datetime:
@@ -54,7 +56,7 @@ def populate_reviews_collection_from_csv(rev_col):
             "_id": row["id"],
             # the data:
             "hotel_id": row["hotel_id"],
-            "date_added": datetime_to_json_block(parse_date(row["date_added"])),
+            "date_added": parse_date(row["date_added"]),
             "id": row["id"],
             "title": row["title"],
             "body": row["body"],

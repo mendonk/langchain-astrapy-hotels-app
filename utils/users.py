@@ -1,9 +1,9 @@
 import json
 from typing import Union
 
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
 
 from utils.db import get_astra_db_client
 from common_constants import USERS_COLLECTION_NAME

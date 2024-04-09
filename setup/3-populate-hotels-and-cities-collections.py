@@ -4,20 +4,26 @@ import pandas as pd
 
 from common_constants import HOTELS_COLLECTION_NAME, CITIES_COLLECTION_NAME
 from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERTION_BATCH_SIZE
-from utils.db import get_astra_db_client
+from utils.db import get_database
 from utils.batching import batch_iterable
 
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
-astra_db_client = get_astra_db_client()
+database = get_database()
 
 
 def create_hotel_collection():
-    return astra_db_client.create_collection(HOTELS_COLLECTION_NAME)
+    return database.create_collection(
+        HOTELS_COLLECTION_NAME,
+        indexing={"allow": ["_id", "city", "country"]},
+    )
 
 
 def create_city_collection():
-    return astra_db_client.create_collection(CITIES_COLLECTION_NAME)
+    return database.create_collection(
+        CITIES_COLLECTION_NAME,
+        indexing={"deny": ["*"]},
+    )
 
 
 def populate_city_collection_from_csv(city_col):

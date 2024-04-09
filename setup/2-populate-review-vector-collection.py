@@ -10,7 +10,7 @@ import concurrent.futures
 from setup.embedding_dump import deflate_embeddings_map
 from setup.setup_constants import EMBEDDING_FILE_NAME, HOTEL_REVIEW_FILE_NAME
 
-from utils.db import get_astra_db_client
+from utils.db import get_astra_credentials
 from utils.ai import EMBEDDING_DIMENSION
 from utils.reviews import format_review_content_for_embedding, get_review_vectorstore
 
@@ -19,7 +19,7 @@ from utils.reviews import format_review_content_for_embedding, get_review_vector
 # to perform all these insertions idiomatically through the LangChain
 # abstraction. This is to avoid having to work at the astrapy level
 # while still taking advantage of the stored json with precalculated vectors.
-from langchain.embeddings.base import Embeddings
+from langchain_core.embeddings import Embeddings
 
 
 class JustPreCalculatedEmbeddings(Embeddings):
@@ -49,8 +49,8 @@ DEFAULT_CONCURRENT_BATCHES = 50
 
 
 if __name__ == "__main__":
-    astra_db_client = get_astra_db_client()
-    #
+    astra_credentials = get_astra_credentials()
+
     parser = argparse.ArgumentParser(
         description="Store reviews with embeddings to Astra DB vector collection"
     )
@@ -85,7 +85,12 @@ if __name__ == "__main__":
     }
     c_embeddings = JustPreCalculatedEmbeddings(precalc_dict=precalc_text_to_vector_map)
 
-    review_vectorstore = get_review_vectorstore(embeddings=c_embeddings, astra_db_client=astra_db_client)
+    review_vectorstore = get_review_vectorstore(
+        embeddings=c_embeddings,
+        api_endpoint=astra_credentials["api_endpoint"],
+        token=astra_credentials["token"],
+        namespace=astra_credentials["namespace"],
+    )
 
     eligibles = [
         {
