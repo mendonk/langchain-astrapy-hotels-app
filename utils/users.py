@@ -106,9 +106,7 @@ def update_user_travel_profile_summary(user_id, user_profile):
     users_col = get_collection(USERS_COLLECTION_NAME)
 
     users_col.find_one_and_update(
-        filter={
-            "_id": user_id
-        },
+        filter={"_id": user_id},
         update={
             "$set": {
                 "travel_profile_summary": travel_profile_summary,

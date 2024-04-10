@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-from concurrent.futures import ThreadPoolExecutor
 import datetime
 
 from common_constants import REVIEWS_COLLECTION_NAME
@@ -61,7 +60,6 @@ def populate_reviews_collection_from_csv(rev_col):
             "body": row["body"],
             "rating": row["rating"],
             "featured": choose_featured(row["upvotes"]),
-
         }
         for _, row in review_df.iterrows()
     )
@@ -72,7 +70,9 @@ def populate_reviews_collection_from_csv(rev_col):
         concurrency=INSERT_MANY_CONCURRENCY,
     )
 
-    print(f"[5-populate-reviews-collection.py] Inserted {len(insert_result.inserted_ids)} reviews")
+    print(
+        f"[5-populate-reviews-collection.py] Inserted {len(insert_result.inserted_ids)} reviews"
+    )
 
 
 if __name__ == "__main__":

@@ -16,8 +16,11 @@ def _split_bulletpoints(text: str) -> List[str]:
     """
     Parse the LLM bullet-point returned stringy blob into a list of stripped items.
     """
-    lines = [l.strip() for l in text.split("\n") if l.strip()]
-    bplines = [l[len(_linestart):] if l.startswith(_linestart) else l for l in lines]
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    bplines = [
+        line[len(_linestart) :] if line.startswith(_linestart) else line
+        for line in lines
+    ]
     return bplines
 
 

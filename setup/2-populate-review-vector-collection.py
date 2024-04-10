@@ -34,7 +34,9 @@ class JustPreCalculatedEmbeddings(Embeddings):
             return self.precalc_dict[text]
         else:
             # this happens from LangChain when creating the store:
-            print(f"** [JustPreCalculatedEmbeddings] INFO: embed request for '{text}'. Returning moot results")
+            print(
+                f"** [JustPreCalculatedEmbeddings] INFO: embed request for '{text}'. Returning moot results"
+            )
             return [0.0] * EMBEDDING_DIMENSION
 
     async def aembed_query(self, text: str) -> List[float]:
@@ -59,7 +61,6 @@ if __name__ == "__main__":
         default=DEFAULT_CONCURRENT_BATCHES,
     )
     args = parser.parse_args()
-
 
     embedding_file_path = os.path.join(this_dir, EMBEDDING_FILE_NAME)
     if os.path.isfile(embedding_file_path):
@@ -105,10 +106,9 @@ if __name__ == "__main__":
         if row["id"] in enrichment
     ]
 
-    texts, metadatas, ids = zip(*[
-        (itm["text"], itm["metadata"], itm["id"])
-        for itm in eligibles
-    ])
+    texts, metadatas, ids = zip(
+        *[(itm["text"], itm["metadata"], itm["id"]) for itm in eligibles]
+    )
 
     inserted_ids = review_vectorstore.add_texts(
         texts=texts,
@@ -117,4 +117,6 @@ if __name__ == "__main__":
         batch_concurrency=args.c,
     )
 
-    print(f"\n[2-populate-review-vector-collection.py] Finished. {len(inserted_ids)} rows written.")
+    print(
+        f"\n[2-populate-review-vector-collection.py] Finished. {len(inserted_ids)} rows written."
+    )

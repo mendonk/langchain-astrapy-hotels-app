@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel
 
 
 class ReviewRequest(BaseModel):
@@ -49,6 +49,7 @@ class Hotel(BaseModel):
     name: str
     id: str
     review_count: Optional[CappedCounter] = None
+
 
 class UserRequest(BaseModel):
     user_id: str

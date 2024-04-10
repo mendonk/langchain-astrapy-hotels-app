@@ -1,6 +1,8 @@
 """Utilities to manipulate reviews"""
+
 import random
-import uuid, datetime
+import uuid
+import datetime
 from langchain_astradb.vectorstores import AstraDBVectorStore
 
 from common_constants import (
@@ -9,7 +11,7 @@ from common_constants import (
     REVIEWS_COLLECTION_NAME,
     REVIEW_VECTOR_COLLECTION_NAME,
 )
-from utils.models import HotelReview, UserProfile, CappedCounter
+from utils.models import HotelReview, CappedCounter
 from utils.ai import get_embeddings
 from utils.db import get_astra_credentials, get_collection
 
@@ -35,6 +37,7 @@ def get_review_vectorstore(embeddings, api_endpoint, token, namespace):
 
 
 # ### SELECTING REVIEWS
+
 
 # Entry point to select reviews for the general (base) hotel summary
 def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
@@ -66,7 +69,7 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             title=recent_review_doc["title"],
             body=recent_review_doc["body"],
             rating=recent_review_doc["rating"],
-       )
+        )
 
     _featured_review_docs = review_col.find(
         filter={
@@ -93,7 +96,7 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             title=featured_review_doc["title"],
             body=featured_review_doc["body"],
             rating=featured_review_doc["rating"],
-       )
+        )
 
     return list(review_dict.values())
 
@@ -158,6 +161,7 @@ def extract_review_body_from_doc_text(review_doc_text: str, review_title: str) -
 
 # ### ADDING REVIEWS
 
+
 # Entry point for when we want to add a review
 # - Generates an id for the new review
 # - Stores the review in the non-vectorised collection
@@ -202,15 +206,17 @@ def insert_into_reviews_collection(
     date_added = datetime.datetime.now()
     featured = choose_featured(random.randint(1, 21))
 
-    review_col.insert_one({
-        "_id": review_id,
-        "hotel_id": hotel_id,
-        "date_added": date_added,
-        "title": review_title,
-        "body": review_body,
-        "rating": review_rating,
-        "featured": featured,
-    })
+    review_col.insert_one(
+        {
+            "_id": review_id,
+            "hotel_id": hotel_id,
+            "date_added": date_added,
+            "title": review_title,
+            "body": review_body,
+            "rating": review_rating,
+            "featured": featured,
+        }
+    )
 
 
 # Inserts a new review into the vectorised reviews collection,

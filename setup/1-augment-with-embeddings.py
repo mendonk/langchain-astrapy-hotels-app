@@ -94,4 +94,6 @@ if __name__ == "__main__":
             json.dump(compress_embeddings_map(enrichment), o_json, indent=4)
         done += len(embedding_vectors)
 
-    print(f"[1-augment-with-embeddings.py] Finished. {done} embeddings computed and stored to '{embedding_file_path}'.")
+    print(
+        f"[1-augment-with-embeddings.py] Finished. {done} embeddings computed and stored to '{embedding_file_path}'."
+    )

@@ -24,7 +24,7 @@ from utils.reviews import (
     select_general_hotel_reviews,
     insert_review_for_hotel,
     select_hotel_reviews_for_user,
-    select_review_count_by_hotel
+    select_review_count_by_hotel,
 )
 from utils.users import (
     read_user_profile,
@@ -62,7 +62,7 @@ def set_user_profile(
     """
     Endpoint that stores the travel preferences (base + additional prefs)
     of the specified user.
-    
+
     It also calls the LLM to create the travel profile summary,
     and stores the summary in the user's profile.
     """

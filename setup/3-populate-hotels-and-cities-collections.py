@@ -46,7 +46,6 @@ def populate_city_collection_from_csv(city_col):
     )
     city_centres_df = city_centres.groupby(["country", "city"], as_index=False).mean()
 
-
     docs_to_insert = (
         {
             # our _id will be '{country}/{city}' consistently
@@ -65,7 +64,9 @@ def populate_city_collection_from_csv(city_col):
         concurrency=INSERT_MANY_CONCURRENCY,
     )
 
-    print(f"[3-populate-hotels-and-cities-collections.py] Inserted {len(insert_result.inserted_ids)} cities")
+    print(
+        f"[3-populate-hotels-and-cities-collections.py] Inserted {len(insert_result.inserted_ids)} cities"
+    )
 
 
 def populate_hotel_collection_from_csv(hotel_col):
@@ -113,7 +114,9 @@ def populate_hotel_collection_from_csv(hotel_col):
         concurrency=INSERT_MANY_CONCURRENCY,
     )
 
-    print(f"[3-populate-hotels-and-cities-collections.py] Inserted {len(insert_result.inserted_ids)} hotels")
+    print(
+        f"[3-populate-hotels-and-cities-collections.py] Inserted {len(insert_result.inserted_ids)} hotels"
+    )
 
 
 if __name__ == "__main__":
