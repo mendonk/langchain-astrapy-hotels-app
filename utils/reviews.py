@@ -5,14 +5,17 @@ from langchain_astradb.vectorstores import AstraDBVectorStore
 
 from common_constants import (
     FEATURED_VOTE_THRESHOLD,
+    MAX_NUM_REVIEWS_TO_COUNT,
     REVIEWS_COLLECTION_NAME,
     REVIEW_VECTOR_COLLECTION_NAME,
 )
-from utils.models import HotelReview, UserProfile
+from utils.models import HotelReview, UserProfile, CappedCounter
 from utils.ai import get_embeddings
-from utils.db import get_astra_credentials, get_database
+from utils.db import get_astra_credentials, get_collection
 
 from typing import List
+
+import astrapy
 
 # LangChain VectorStore abstraction to interact with the vector database
 review_vectorstore = None
@@ -35,8 +38,7 @@ def get_review_vectorstore(embeddings, api_endpoint, token, namespace):
 
 # Entry point to select reviews for the general (base) hotel summary
 def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
-    database = get_database()
-    review_col = database.get_collection(REVIEWS_COLLECTION_NAME)
+    review_col = get_collection(REVIEWS_COLLECTION_NAME)
 
     review_dict = {}
 
@@ -128,16 +130,23 @@ def select_hotel_reviews_for_user(
     return reviews
 
 
-def select_review_count_by_hotel(hotel_id: str) -> int:
-    database = get_database()
-    review_col = database.get_collection(REVIEWS_COLLECTION_NAME)
+def select_review_count_by_hotel(hotel_id: str) -> CappedCounter:
+    review_col = get_collection(REVIEWS_COLLECTION_NAME)
 
-    return review_col.count_documents(
-        filter={
-            "hotel_id": hotel_id,
-        },
-        upper_bound=200,
-    )
+    try:
+        num_reviews = review_col.count_documents(
+            filter={
+                "hotel_id": hotel_id,
+            },
+            upper_bound=MAX_NUM_REVIEWS_TO_COUNT,
+        )
+        count = CappedCounter(count=num_reviews)
+    except astrapy.exceptions.TooManyDocumentsToCountException:
+        count = CappedCounter(
+            count=MAX_NUM_REVIEWS_TO_COUNT,
+            at_ceiling=True,
+        )
+    return count
 
 
 # Extracts the review body from the text found in the document,
@@ -188,8 +197,7 @@ def insert_into_reviews_collection(
     review_body: str,
     review_rating: int,
 ):
-    database = get_database()
-    review_col = database.get_collection(REVIEWS_COLLECTION_NAME)
+    review_col = get_collection(REVIEWS_COLLECTION_NAME)
 
     date_added = datetime.datetime.now()
     featured = choose_featured(random.randint(1, 21))

@@ -1,7 +1,12 @@
+interface CappedCounterType {
+    count: number;
+    at_ceiling: boolean;
+}
+
 export interface HotelType {
   city: string;
   country: string;
-  num_reviews: number;
+  review_count?: CappedCounterType;
   name: string;
   id: string;
 }

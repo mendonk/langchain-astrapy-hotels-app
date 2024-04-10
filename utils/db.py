@@ -1,4 +1,5 @@
 import os
+from typing import Dict
 
 from dotenv import find_dotenv, load_dotenv
 
@@ -11,6 +12,7 @@ load_dotenv(dotenv_file)
 
 
 astra_database: astrapy.Database = None
+collection_cache: Dict[str, astrapy.Collection] = {}
 
 
 def get_astra_credentials():
@@ -32,3 +34,10 @@ def get_database():
             namespace=credentials["namespace"],
         )
     return astra_database
+
+
+def get_collection(name: str) -> astrapy.Collection:
+    global collection_cache
+    if name not in collection_cache:
+        collection_cache[name] = get_database().get_collection(name)
+    return collection_cache[name]

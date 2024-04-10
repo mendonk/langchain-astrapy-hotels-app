@@ -4,10 +4,15 @@ export interface SuccessMarker {
   success: boolean;
 }
 
+interface CappedCounter {
+    count: number;
+    at_ceiling: boolean;
+}
+
 export interface Hotel {
   city: string;
   country: string;
-  num_reviews: number;
+  review_count?: CappedCounter;
   name: string;
   id: string;
 }

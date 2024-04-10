@@ -1,4 +1,4 @@
-from utils.db import get_database
+from utils.db import get_collection
 
 from common_constants import HOTELS_COLLECTION_NAME
 from typing import List, Optional
@@ -6,8 +6,7 @@ from utils.models import Hotel
 
 
 def find_hotels_by_location(city: str, country: str) -> List[Hotel]:
-    database = get_database()
-    hotels_col = database.get_collection(HOTELS_COLLECTION_NAME)
+    hotels_col = get_collection(HOTELS_COLLECTION_NAME)
 
     hotel_docs = hotels_col.find(
         filter={
@@ -35,8 +34,7 @@ def find_hotels_by_location(city: str, country: str) -> List[Hotel]:
 
 
 def find_hotel_by_id(hotel_id: str) -> Optional[Hotel]:
-    database = get_database()
-    hotels_col = database.get_collection(HOTELS_COLLECTION_NAME)
+    hotels_col = get_collection(HOTELS_COLLECTION_NAME)
 
     hotel_doc = hotels_col.find_one(
         filter={

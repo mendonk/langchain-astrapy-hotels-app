@@ -38,12 +38,17 @@ class HotelSummary(BaseModel):
     summary: List[str]
 
 
+class CappedCounter(BaseModel):
+    count: int
+    at_ceiling: bool = False
+
+
 class Hotel(BaseModel):
     city: str
     country: str
     name: str
     id: str
-    num_reviews: Optional[int] = 0
+    review_count: Optional[CappedCounter] = None
 
 class UserRequest(BaseModel):
     user_id: str

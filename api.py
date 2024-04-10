@@ -16,8 +16,10 @@ from utils.models import (
     UserProfileSubmitRequest,
     UserProfile,
 )
-
-from utils.review_llm import summarize_reviews_for_hotel, summarize_reviews_for_user
+from utils.review_llm import (
+    summarize_reviews_for_hotel,
+    summarize_reviews_for_user,
+)
 from utils.reviews import (
     select_general_hotel_reviews,
     insert_review_for_hotel,
@@ -33,36 +35,38 @@ from utils.hotels import find_hotels_by_location, find_hotel_by_id
 from utils.strings import DEFAULT_TRAVEL_PROFILE_SUMMARY
 
 
-# init
-
-
 def init():
     get_database()
     enable_llm_cache()
 
-
-# app
 
 init()
 app = FastAPI()
 permitReactLocalhostClient(app)
 
 
-# Endpoint that retrieves the travel preferences (base + additional prefs) of the specified user.
-# This has been implemented (TODO remove this note)
-# TODO should this just be a GET, e.g. /v1/user_profile/{user_id} ?
 @app.post("/v1/get_user_profile")
 def get_user_profile(payload: UserRequest) -> Union[UserProfile, None]:
+    """
+    Endpoint that retrieves the travel preferences
+    (base + additional prefs) of the specified user.
+    """
+
     return read_user_profile(payload.user_id)
 
 
-# Endpoint that stores the travel preferences (base + additional prefs) of the specified user.
-# It also calls the LLM to create the travel profile summary, and stores the summary in the user's profile.
-# This has been implemented (TODO remove this note)
 @app.post("/v1/set_user_profile")
 def set_user_profile(
     payload: UserProfileSubmitRequest, bg_tasks: BackgroundTasks
 ) -> Dict[str, bool]:
+    """
+    Endpoint that stores the travel preferences (base + additional prefs)
+    of the specified user.
+    
+    It also calls the LLM to create the travel profile summary,
+    and stores the summary in the user's profile.
+    """
+
     try:
         write_user_profile(
             payload.user_id,
@@ -82,21 +86,27 @@ def set_user_profile(
         }
 
 
-# Endpoint that retrieves a list of hotels located in the specified city.
-# This has been implemented (TODO remove this note)
-# TODO implement geo search based on proximity to a point
 @app.post("/v1/find_hotels")
 def get_hotels(hotel_request: HotelSearchRequest) -> List[Hotel]:
+    """
+    Endpoint that retrieves a list of hotels located in the specified city.
+
+    TODO implement geo search based on proximity to a point
+    """
+
     hotels = find_hotels_by_location(hotel_request.city, hotel_request.country)
     for hotel in hotels:
-        hotel.num_reviews = select_review_count_by_hotel(hotel.id)
+        hotel.review_count = select_review_count_by_hotel(hotel.id)
     return hotels
 
 
-# Endpoint that selects the most recent reviews + some featured ones and creates a general concise summary.
-# This has been implemented (TODO remove this note)
 @app.post("/v1/base_hotel_summary")
 def get_base_hotel_summary(payload: HotelDetailsRequest) -> HotelSummary:
+    """
+    Endpoint that selects the most recent reviews + some featured ones
+    and creates a general concise summary.
+    """
+
     hotel_reviews = select_general_hotel_reviews(payload.id)
     hotel_review_summary = summarize_reviews_for_hotel(hotel_reviews)
     return HotelSummary(
@@ -107,7 +117,6 @@ def get_base_hotel_summary(payload: HotelDetailsRequest) -> HotelSummary:
 
 
 # Endpoint that inserts a review for a hotel.
-# This has been implemented (TODO remove this note)
 @app.post("/v1/{hotel_id}/add_review")
 def add_review(hotel_id: str, payload: HotelReview):
     try:
@@ -128,8 +137,6 @@ def add_review(hotel_id: str, payload: HotelReview):
 
 # Endpoint that selects the three reviews of this hotel that are most relevant to this user
 # and generates a user-tailored summary of these reviews.
-# This has been implemented (TODO remove this note)
-# TODO should this become a GET and have the user_id as part of the path somewhere?
 @app.post("/v1/customized_hotel_details/{hotel_id}")
 def get_customized_hotel_details(
     hotel_id: str, payload: UserRequest
