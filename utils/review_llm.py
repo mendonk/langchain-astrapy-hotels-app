@@ -28,7 +28,7 @@ def _split_bulletpoints(text: str) -> List[str]:
 # TODO improve the prompt. Also rename this function with a clearer name.
 def summarize_reviews_for_user(
     reviews: List[HotelReview], travel_profile_summary: str
-) -> str:
+) -> List[str]:
     summarizing_llm = get_llm()
 
     concatenated_reviews = "\n".join(review.body for review in reviews)
@@ -65,7 +65,7 @@ def summarize_reviews_for_user(
 # Calls the LLM to generate a concise summary of the given reviews for a hotel.
 # This is a general, base summary for the hotel and is not user-specific.
 # TODO improve the prompt. Also rename this function with a clearer name.
-def summarize_reviews_for_hotel(reviews: List[HotelReview]) -> str:
+def summarize_reviews_for_hotel(reviews: List[HotelReview]) -> List[str]:
     summarizing_llm = get_llm()
 
     concatenated_reviews = "\n".join(review.body for review in reviews)

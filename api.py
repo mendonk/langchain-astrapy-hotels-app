@@ -1,6 +1,6 @@
 from typing import Dict, List, Union
 
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, HTTPException
 
 from utils.localCORS import permitReactLocalhostClient
 from utils.ai import enable_llm_cache
@@ -150,6 +150,11 @@ def get_customized_hotel_details(
     6. return the summary and the reviews used (+ name), as in the structure below
     """
 
+    hotel_details = find_hotel_by_id(hotel_id)
+
+    if hotel_details is None:
+        raise HTTPException(status_code=404, detail=f"Hotel '{hotel_id}' not found")
+
     user_profile = read_user_profile(payload.user_id)
 
     if user_profile:
@@ -166,7 +171,6 @@ def get_customized_hotel_details(
         reviews=hotel_reviews_for_user,
         travel_profile_summary=travel_profile_summary,
     )
-    hotel_details = find_hotel_by_id(hotel_id)
 
     return CustomizedHotelDetails(
         name=hotel_details.name,

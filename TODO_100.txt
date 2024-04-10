@@ -37,6 +37,6 @@ x style
 
 - import statements, reorder
 
-- full strict typing
+x full strict typing
 
 - migrate the client to consistent interfaces finally
