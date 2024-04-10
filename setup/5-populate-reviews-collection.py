@@ -4,10 +4,9 @@ from concurrent.futures import ThreadPoolExecutor
 import datetime
 
 from common_constants import REVIEWS_COLLECTION_NAME
-from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERTION_BATCH_SIZE, INSERTION_BATCH_CONCURRENCY
+from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERT_MANY_CONCURRENCY
 from utils.reviews import choose_featured
 from utils.db import get_database
-from utils.batching import batch_iterable
 
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -67,18 +66,13 @@ def populate_reviews_collection_from_csv(rev_col):
         for _, row in review_df.iterrows()
     )
 
-    with ThreadPoolExecutor(max_workers=INSERTION_BATCH_CONCURRENCY) as tpe:
-        _ = list(
-            tpe.map(
-                rev_col.insert_many,
-                (
-                    list(batch)
-                    for batch in batch_iterable(docs_to_insert, INSERTION_BATCH_SIZE)
-                ),
-            )
-        )
+    insert_result = rev_col.insert_many(
+        docs_to_insert,
+        ordered=False,
+        concurrency=INSERT_MANY_CONCURRENCY,
+    )
 
-    print(f"[5-populate-reviews-collection.py] Inserted {len(review_df)} reviews")
+    print(f"[5-populate-reviews-collection.py] Inserted {len(insert_result.inserted_ids)} reviews")
 
 
 if __name__ == "__main__":

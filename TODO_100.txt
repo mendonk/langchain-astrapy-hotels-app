@@ -3,7 +3,9 @@ TODOs for the transition to astrapy 1.0.0
 . ~/.virtualenvs/hotels-astrapy100-3.10/bin/activate
 
 X reformulate dependencies altogether
+
 X tweak req and temporarily dep-install steps to achieve 1.0.0
+
 X get DB(s) decouple from get LC things. the latter through creds
 
 - get setup steps to work
@@ -14,15 +16,19 @@ X get DB(s) decouple from get LC things. the latter through creds
 
 x get app to work without llm caching
 
-- get app to work with caching
+x get app to work with caching
 
-- how to fit the 6th in 1st db (see below)
-- select_review_count_by_hotel => use count_documents and handle bound-hit error with elegant "100+ reviews" marker (requires slight client tweak as well)
+x how to fit the 6th in 1st db (see below)
+
+x remove the explicit batching for insertions in setup
+    a big insert_many + ordered=False + concurrency
+    x in 3
+    x in 5
+
+- select_review_count_by_hotel => use count_documents and handle bound-hit error with elegant "100+ reviews" marker (requires slight client tweak as well) The indexing deny["*"] should make everything work in a single DB
+
 - check readme and other writeup
+
 - check gitpod, ragstackify (how?)
 
-- remove the explicit batching for insertions in setup, also the concurrency probably
 - all these get_db in functions and then instantiation of Collections -> replace with more centralized thing
-
-- CITIES: not really used (until the day of geosearch and/or autocomplete). Remove the collection and fit everything in 5 collections.
-- Also later keep this a local json (it's a fre k records anyway)

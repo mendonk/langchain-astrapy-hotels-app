@@ -39,17 +39,11 @@ def get_embeddings():
 
 
 def enable_llm_cache():
-    # This is a strange trick to circumvent the 5-collection limit
-    # well... 'circumvent' actually means we use TWO DATABASES lol
-    astra_credentials_alt = get_astra_credentials(alternative_db=True)
-    if astra_credentials_alt:
-        set_llm_cache(
-            AstraDBCache(
-                api_endpoint=astra_credentials_alt["api_endpoint"],
-                token=astra_credentials_alt["token"],
-                namespace=astra_credentials_alt["namespace"],
-            )
+    astra_credentials = get_astra_credentials()
+    set_llm_cache(
+        AstraDBCache(
+            api_endpoint=astra_credentials["api_endpoint"],
+            token=astra_credentials["token"],
+            namespace=astra_credentials["namespace"],
         )
-    else:
-        print("\n\n   *** NO LLM CACHING AVAILABLE ***\n\n")
-
+    )

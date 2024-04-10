@@ -1,11 +1,8 @@
 import os
-import sys
 import json
 import argparse
 import pandas as pd
-from itertools import groupby
 from typing import Dict, List
-import concurrent.futures
 
 from setup.embedding_dump import deflate_embeddings_map
 from setup.setup_constants import EMBEDDING_FILE_NAME, HOTEL_REVIEW_FILE_NAME

@@ -3,9 +3,8 @@ import os
 import pandas as pd
 
 from common_constants import HOTELS_COLLECTION_NAME, CITIES_COLLECTION_NAME
-from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERTION_BATCH_SIZE
+from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERT_MANY_CONCURRENCY
 from utils.db import get_database
-from utils.batching import batch_iterable
 
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -60,11 +59,13 @@ def populate_city_collection_from_csv(city_col):
         }
         for _, row in city_centres_df.iterrows()
     )
-    for doc_batch in batch_iterable(docs_to_insert, INSERTION_BATCH_SIZE):
-        _docs = list(doc_batch)
-        city_col.insert_many(_docs)
+    insert_result = city_col.insert_many(
+        docs_to_insert,
+        ordered=False,
+        concurrency=INSERT_MANY_CONCURRENCY,
+    )
 
-    print(f"[3-populate-hotels-and-cities-collections.py] Inserted {len(city_centres_df)} cities")
+    print(f"[3-populate-hotels-and-cities-collections.py] Inserted {len(insert_result.inserted_ids)} cities")
 
 
 def populate_hotel_collection_from_csv(hotel_col):
@@ -106,11 +107,13 @@ def populate_hotel_collection_from_csv(hotel_col):
         }
         for _, row in hotel_df.iterrows()
     )
-    for doc_batch in batch_iterable(docs_to_insert, INSERTION_BATCH_SIZE):
-        _docs = list(doc_batch)
-        hotel_col.insert_many(_docs)
+    insert_result = hotel_col.insert_many(
+        docs_to_insert,
+        ordered=False,
+        concurrency=INSERT_MANY_CONCURRENCY,
+    )
 
-    print(f"[3-populate-hotels-and-cities-collections.py] Inserted {len(hotel_df)} hotels")
+    print(f"[3-populate-hotels-and-cities-collections.py] Inserted {len(insert_result.inserted_ids)} hotels")
 
 
 if __name__ == "__main__":
