@@ -17,7 +17,7 @@ database = get_database()
 def create_reviews_collection():
     return database.create_collection(
         REVIEWS_COLLECTION_NAME,
-        indexing={"allow": ["_id", "hotel_id"]},
+        indexing={"allow": ["_id", "hotel_id", "date_added", "featured"]},
     )
 
 

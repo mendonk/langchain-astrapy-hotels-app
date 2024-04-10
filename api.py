@@ -4,7 +4,7 @@ from fastapi import FastAPI, BackgroundTasks
 
 from utils.localCORS import permitReactLocalhostClient
 from utils.ai import enable_llm_cache
-from utils.db import get_astra_db_client
+from utils.db import get_database
 from utils.models import (
     CustomizedHotelDetails,
     Hotel,
@@ -37,7 +37,7 @@ from utils.strings import DEFAULT_TRAVEL_PROFILE_SUMMARY
 
 
 def init():
-    _ = get_astra_db_client()
+    get_database()
     enable_llm_cache()
 
 

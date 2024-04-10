@@ -10,7 +10,7 @@ from common_constants import (
 )
 from utils.models import HotelReview, UserProfile
 from utils.ai import get_embeddings
-from utils.db import get_database
+from utils.db import get_astra_credentials, get_database
 
 from typing import List
 
@@ -35,8 +35,8 @@ def get_review_vectorstore(embeddings, api_endpoint, token, namespace):
 
 # Entry point to select reviews for the general (base) hotel summary
 def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
-    astra_db_client = get_database()
-    review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
+    database = get_database()
+    review_col = database.get_collection(REVIEWS_COLLECTION_NAME)
 
     review_dict = {}
 
@@ -54,10 +54,8 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             "rating": 1,
             "date_added": 1,
         },
-        options={
-            "limit": 3,
-        },
-    )["data"]["documents"]
+        limit=3,
+    )
     recent_review_docs = list(_recent_review_docs)
 
     for recent_review_doc in recent_review_docs:
@@ -83,10 +81,8 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             "rating": 1,
             "date_added": 1,
         },
-        options={
-            "limit": 3,
-        },
-    )["data"]["documents"]
+        limit=3,
+    )
     featured_review_docs = list(_featured_review_docs)
 
     for featured_review_doc in featured_review_docs:
@@ -103,10 +99,12 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
 def select_hotel_reviews_for_user(
     hotel_id: str, user_travel_profile_summary: str
 ) -> List[HotelReview]:
-    astra_db_client = get_astra_db_client()
+    astra_credemtials = get_astra_credentials()
     review_store = get_review_vectorstore(
         embeddings=get_embeddings(),
-        astra_db_client=astra_db_client,
+        token=astra_credemtials["token"],
+        api_endpoint=astra_credemtials["api_endpoint"],
+        namespace=astra_credemtials["namespace"],
     )
 
     review_data = review_store.similarity_search_with_score_id(
@@ -131,18 +129,15 @@ def select_hotel_reviews_for_user(
 
 
 def select_review_count_by_hotel(hotel_id: str) -> int:
-    astra_db_client = get_astra_db_client()
-    review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
+    database = get_database()
+    review_col = database.get_collection(REVIEWS_COLLECTION_NAME)
 
-    return len(list(review_col.paginated_find(
+    return review_col.count_documents(
         filter={
             "hotel_id": hotel_id,
         },
-        # Current workaround to "get me just _id" projection:
-        projection={
-            "not_a_field": 1,
-        }
-    )))
+        upper_bound=200,
+    )
 
 
 # Extracts the review body from the text found in the document,
@@ -193,8 +188,8 @@ def insert_into_reviews_collection(
     review_body: str,
     review_rating: int,
 ):
-    astra_db_client = get_astra_db_client()
-    review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
+    database = get_database()
+    review_col = database.get_collection(REVIEWS_COLLECTION_NAME)
 
     date_added = datetime.datetime.now()
     featured = choose_featured(random.randint(1, 21))
@@ -220,9 +215,12 @@ def insert_into_review_vector_collection(
     review_body: str,
     review_rating: int,
 ):
+    astra_credemtials = get_astra_credentials()
     review_store = get_review_vectorstore(
         embeddings=get_embeddings(),
-        astra_db_client=get_astra_db_client(),
+        token=astra_credemtials["token"],
+        api_endpoint=astra_credemtials["api_endpoint"],
+        namespace=astra_credemtials["namespace"],
     )
 
     review_metadata = {

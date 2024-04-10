@@ -43,15 +43,7 @@ class Hotel(BaseModel):
     country: str
     name: str
     id: str
-    num_reviews: Optional[int]
-
-    @validator('num_reviews')
-    def set_num_reviews(cls, v):
-        if v is None:
-            return 0
-        else:
-            return v
-
+    num_reviews: Optional[int] = 0
 
 class UserRequest(BaseModel):
     user_id: str
@@ -60,14 +52,7 @@ class UserRequest(BaseModel):
 class UserProfile(BaseModel):
     base_preferences: Dict[str, bool]
     additional_preferences: str
-    travel_profile_summary: Optional[str]
-
-    @validator('travel_profile_summary')
-    def set_travel_profile_summary(cls, v):
-        if v is None:
-            return ""
-        else:
-            return v
+    travel_profile_summary: Optional[str] = None
 
 
 class UserProfileSubmitRequest(BaseModel):

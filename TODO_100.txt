@@ -12,11 +12,12 @@ X get DB(s) decouple from get LC things. the latter through creds
   x 4
   x 5
 
-- get app to work
+x get app to work without llm caching
 
-- test with/out caching on the 6th coll
-- how to fit the 6th in 1st db
-- select_review_count_by_hotel => use count_documents and handle bound-hit error
+- get app to work with caching
+
+- how to fit the 6th in 1st db (see below)
+- select_review_count_by_hotel => use count_documents and handle bound-hit error with elegant "100+ reviews" marker (requires slight client tweak as well)
 - check readme and other writeup
 - check gitpod, ragstackify (how?)
 
