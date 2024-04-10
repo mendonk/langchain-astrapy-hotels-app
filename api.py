@@ -35,7 +35,7 @@ from utils.hotels import find_hotels_by_location, find_hotel_by_id
 from utils.strings import DEFAULT_TRAVEL_PROFILE_SUMMARY
 
 
-def init():
+def init() -> None:
     get_database()
     enable_llm_cache()
 
@@ -118,7 +118,7 @@ def get_base_hotel_summary(payload: HotelDetailsRequest) -> HotelSummary:
 
 # Endpoint that inserts a review for a hotel.
 @app.post("/v1/{hotel_id}/add_review")
-def add_review(hotel_id: str, payload: HotelReview):
+def add_review(hotel_id: str, payload: HotelReview) -> Dict[str, bool]:
     try:
         insert_review_for_hotel(
             hotel_id=hotel_id,
@@ -153,7 +153,7 @@ def get_customized_hotel_details(
     user_profile = read_user_profile(payload.user_id)
 
     if user_profile:
-        travel_profile_summary = user_profile.travel_profile_summary
+        travel_profile_summary = user_profile.travel_profile_summary or DEFAULT_TRAVEL_PROFILE_SUMMARY
     else:
         travel_profile_summary = DEFAULT_TRAVEL_PROFILE_SUMMARY
 

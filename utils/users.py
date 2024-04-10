@@ -12,7 +12,7 @@ from utils.models import UserProfile
 from utils.ai import get_llm
 
 
-def read_user_profile(user_id) -> Union[UserProfile, None]:
+def read_user_profile(user_id: str) -> Union[UserProfile, None]:
     users_col = get_collection(USERS_COLLECTION_NAME)
 
     user_doc = users_col.find_one(
@@ -37,7 +37,7 @@ def read_user_profile(user_id) -> Union[UserProfile, None]:
         return None
 
 
-def write_user_profile(user_id, user_profile):
+def write_user_profile(user_id: str, user_profile: UserProfile) -> None:
     users_col = get_collection(USERS_COLLECTION_NAME)
 
     users_col.find_one_and_replace(
@@ -52,7 +52,7 @@ def write_user_profile(user_id, user_profile):
 
 
 # def update_user_desc(user_id, base_preferences, additional_preferences):
-def update_user_travel_profile_summary(user_id, user_profile):
+def update_user_travel_profile_summary(user_id: str, user_profile: UserProfile) -> None:
     print("Updating automated travel preferences for user ", user_id)
 
     summarizing_llm = get_llm()

@@ -1,6 +1,7 @@
 import os
 from dotenv import find_dotenv, load_dotenv
 
+import langchain_core
 from langchain.globals import set_llm_cache
 from langchain_openai.llms import OpenAI
 from langchain_openai.embeddings import OpenAIEmbeddings
@@ -14,36 +15,34 @@ LLM_PROVIDER = "OpenAI"
 dotenv_file = find_dotenv(".env")
 load_dotenv(dotenv_file)
 
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
-
 EMBEDDING_DIMENSION = 1536
 
 llm = None
 embeddings = None
 
 
-def get_llm():
+def get_llm() -> langchain_core.language_models.llms.BaseLLM:
     global llm
     if llm is None:
-        llm = OpenAI(openai_api_key=OPENAI_API_KEY)
+        llm = OpenAI()
     #
     return llm
 
 
-def get_embeddings():
+def get_embeddings() -> langchain_core.embeddings.Embeddings:
     global embeddings
     if embeddings is None:
-        embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
+        embeddings = OpenAIEmbeddings()
     #
     return embeddings
 
 
-def enable_llm_cache():
+def enable_llm_cache() -> None:
     astra_credentials = get_astra_credentials()
     set_llm_cache(
         AstraDBCache(
-            api_endpoint=astra_credentials["api_endpoint"],
-            token=astra_credentials["token"],
-            namespace=astra_credentials["namespace"],
+            api_endpoint=astra_credentials.api_endpoint,
+            token=astra_credentials.token,
+            namespace=astra_credentials.namespace,
         )
     )

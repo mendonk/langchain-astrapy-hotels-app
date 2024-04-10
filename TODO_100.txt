@@ -33,6 +33,10 @@ x select_review_count_by_hotel => use count_documents and handle bound-hit error
 
 x all these get_db in functions and then instantiation of Collections -> replace with more centralized thing
 
-- style, typing
+x style
+
+- import statements, reorder
+
+- full strict typing
 
 - migrate the client to consistent interfaces finally

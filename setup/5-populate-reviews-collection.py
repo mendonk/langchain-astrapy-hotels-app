@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import datetime
 
+import astrapy
+
 from common_constants import REVIEWS_COLLECTION_NAME
 from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERT_MANY_CONCURRENCY
 from utils.reviews import choose_featured
@@ -12,19 +14,20 @@ this_dir = os.path.abspath(os.path.dirname(__file__))
 database = get_database()
 
 
-def create_reviews_collection():
-    return database.create_collection(
+def create_reviews_collection() -> astrapy.Collection:
+    coll: astrapy.Collection = database.create_collection(
         REVIEWS_COLLECTION_NAME,
         indexing={"allow": ["_id", "hotel_id", "date_added", "featured"]},
     )
+    return coll
 
 
-def parse_date(date_str) -> datetime.datetime:
+def parse_date(date_str: str) -> datetime.datetime:
     trunc_date = date_str[: date_str.find("T")]
     return datetime.datetime.strptime(trunc_date, "%Y-%m-%d")
 
 
-def populate_reviews_collection_from_csv(rev_col):
+def populate_reviews_collection_from_csv(rev_col: astrapy.Collection) -> None:
     hotel_review_file_path = os.path.join(this_dir, HOTEL_REVIEW_FILE_NAME)
     hotel_review_data = pd.read_csv(hotel_review_file_path)
 

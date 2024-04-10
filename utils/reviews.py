@@ -1,9 +1,15 @@
 """Utilities to manipulate reviews"""
 
+from typing import List, Optional
+
 import random
 import uuid
 import datetime
+
+import langchain_core
 from langchain_astradb.vectorstores import AstraDBVectorStore
+
+import astrapy
 
 from common_constants import (
     FEATURED_VOTE_THRESHOLD,
@@ -15,15 +21,16 @@ from utils.models import HotelReview, CappedCounter
 from utils.ai import get_embeddings
 from utils.db import get_astra_credentials, get_collection
 
-from typing import List
-
-import astrapy
-
 # LangChain VectorStore abstraction to interact with the vector database
 review_vectorstore = None
 
 
-def get_review_vectorstore(embeddings, api_endpoint, token, namespace):
+def get_review_vectorstore(
+    embeddings: langchain_core.embeddings.Embeddings,
+    api_endpoint: str,
+    token: str,
+    namespace: Optional[str],
+) -> AstraDBVectorStore:
     global review_vectorstore
     if review_vectorstore is None:
         review_vectorstore = AstraDBVectorStore(
@@ -104,12 +111,12 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
 def select_hotel_reviews_for_user(
     hotel_id: str, user_travel_profile_summary: str
 ) -> List[HotelReview]:
-    astra_credemtials = get_astra_credentials()
+    astra_credentials = get_astra_credentials()
     review_store = get_review_vectorstore(
         embeddings=get_embeddings(),
-        token=astra_credemtials["token"],
-        api_endpoint=astra_credemtials["api_endpoint"],
-        namespace=astra_credemtials["namespace"],
+        token=astra_credentials.token,
+        api_endpoint=astra_credentials.api_endpoint,
+        namespace=astra_credentials.namespace,
     )
 
     review_data = review_store.similarity_search_with_score_id(
@@ -124,7 +131,7 @@ def select_hotel_reviews_for_user(
             body=extract_review_body_from_doc_text(
                 review_doc.page_content, review_doc.metadata["title"]
             ),
-            rating=float(review_doc.metadata["rating"]),
+            rating=int(review_doc.metadata["rating"]),
             id=review_id,
         )
         for review_doc, _, review_id in review_data
@@ -168,7 +175,7 @@ def extract_review_body_from_doc_text(review_doc_text: str, review_title: str) -
 # - Embeds the review and then stores it in the vectorised collection
 def insert_review_for_hotel(
     hotel_id: str, review_title: str, review_body: str, review_rating: int
-):
+) -> None:
     review_id = generate_review_id()
     insert_into_reviews_collection(
         hotel_id, review_id, review_title, review_body, review_rating
@@ -178,7 +185,7 @@ def insert_review_for_hotel(
     )
 
 
-def generate_review_id():
+def generate_review_id() -> str:
     return uuid.uuid4().hex
 
 
@@ -200,7 +207,7 @@ def insert_into_reviews_collection(
     review_title: str,
     review_body: str,
     review_rating: int,
-):
+) -> None:
     review_col = get_collection(REVIEWS_COLLECTION_NAME)
 
     date_added = datetime.datetime.now()
@@ -228,13 +235,13 @@ def insert_into_review_vector_collection(
     review_title: str,
     review_body: str,
     review_rating: int,
-):
-    astra_credemtials = get_astra_credentials()
+) -> None:
+    astra_credentials = get_astra_credentials()
     review_store = get_review_vectorstore(
         embeddings=get_embeddings(),
-        token=astra_credemtials["token"],
-        api_endpoint=astra_credemtials["api_endpoint"],
-        namespace=astra_credemtials["namespace"],
+        token=astra_credentials.token,
+        api_endpoint=astra_credentials.api_endpoint,
+        namespace=astra_credentials.namespace,
     )
 
     review_metadata = {

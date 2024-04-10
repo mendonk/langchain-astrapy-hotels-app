@@ -2,6 +2,8 @@ import os
 
 import pandas as pd
 
+import astrapy
+
 from common_constants import HOTELS_COLLECTION_NAME, CITIES_COLLECTION_NAME
 from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERT_MANY_CONCURRENCY
 from utils.db import get_database
@@ -11,21 +13,23 @@ this_dir = os.path.abspath(os.path.dirname(__file__))
 database = get_database()
 
 
-def create_hotel_collection():
-    return database.create_collection(
+def create_hotel_collection() -> astrapy.Collection:
+    coll: astrapy.Collection = database.create_collection(
         HOTELS_COLLECTION_NAME,
         indexing={"allow": ["_id", "city", "country"]},
     )
+    return coll
 
 
-def create_city_collection():
-    return database.create_collection(
+def create_city_collection() -> astrapy.Collection:
+    coll: astrapy.Collection = database.create_collection(
         CITIES_COLLECTION_NAME,
         indexing={"deny": ["*"]},
     )
+    return coll
 
 
-def populate_city_collection_from_csv(city_col):
+def populate_city_collection_from_csv(city_col: astrapy.Collection) -> None:
     hotel_review_file_path = os.path.join(this_dir, HOTEL_REVIEW_FILE_NAME)
     hotel_review_data = pd.read_csv(hotel_review_file_path)
     city_centres = pd.DataFrame(
@@ -69,7 +73,7 @@ def populate_city_collection_from_csv(city_col):
     )
 
 
-def populate_hotel_collection_from_csv(hotel_col):
+def populate_hotel_collection_from_csv(hotel_col: astrapy.Collection) -> None:
     hotel_review_file_path = os.path.join(this_dir, HOTEL_REVIEW_FILE_NAME)
     hotel_review_data = pd.read_csv(hotel_review_file_path)
     chosen_columns = pd.DataFrame(

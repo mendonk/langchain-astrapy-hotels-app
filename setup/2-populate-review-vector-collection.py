@@ -85,9 +85,9 @@ if __name__ == "__main__":
 
     review_vectorstore = get_review_vectorstore(
         embeddings=c_embeddings,
-        api_endpoint=astra_credentials["api_endpoint"],
-        token=astra_credentials["token"],
-        namespace=astra_credentials["namespace"],
+        api_endpoint=astra_credentials.api_endpoint,
+        token=astra_credentials.token,
+        namespace=astra_credentials.namespace,
     )
 
     eligibles = [
@@ -106,9 +106,12 @@ if __name__ == "__main__":
         if row["id"] in enrichment
     ]
 
-    texts, metadatas, ids = zip(
+    _texts, _metadatas, _ids = zip(
         *[(itm["text"], itm["metadata"], itm["id"]) for itm in eligibles]
     )
+    texts = list(_texts)
+    metadatas = list(_metadatas)
+    ids = list(_ids)
 
     inserted_ids = review_vectorstore.add_texts(
         texts=texts,
