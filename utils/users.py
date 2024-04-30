@@ -97,7 +97,7 @@ def update_user_travel_profile_summary(user_id: str, user_profile: UserProfile) 
 
     chain = load_summarize_chain(llm=summarizing_llm, chain_type="stuff")
     docs = [Document(page_content=populated_prompt)]
-    travel_profile_summary = chain.invoke(docs)
+    travel_profile_summary = chain.invoke(docs)["output_text"].strip()  # type: ignore[arg-type]
 
     print("Travel profile summary:\n", travel_profile_summary)
 

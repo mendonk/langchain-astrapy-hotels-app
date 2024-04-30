@@ -58,7 +58,7 @@ def summarize_reviews_for_user(
 
     chain = load_summarize_chain(llm=summarizing_llm, chain_type="stuff")
     docs = [Document(page_content=populated_prompt)]
-    return _split_bulletpoints(chain.invoke(docs))
+    return _split_bulletpoints(chain.invoke(docs)["output_text"].strip())  # type: ignore[arg-type]
 
 
 # Calls the LLM to generate a concise summary of the given reviews for a hotel.
@@ -91,4 +91,4 @@ def summarize_reviews_for_hotel(reviews: List[HotelReview]) -> List[str]:
 
     chain = load_summarize_chain(llm=summarizing_llm, chain_type="stuff")
     docs = [Document(page_content=populated_prompt)]
-    return _split_bulletpoints(chain.invoke(docs))
+    return _split_bulletpoints(chain.invoke(docs)["output_text"].strip())  # type: ignore[arg-type]

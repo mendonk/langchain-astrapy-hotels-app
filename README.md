@@ -149,6 +149,15 @@ REACT_APP_API_BASE_URL="http://10.1.1.2:6789" npm start
 
 > **Note**: do not worry if you see some API requests being done twice. This is due to the React (v18+) app running in dev mode with `use strict`. See [here](https://stackoverflow.com/questions/72238175/why-useeffect-running-twice-and-how-to-handle-it-well-in-react) for more. _Behaviour in production would be all right._
 
+## Cleanup
+
+Should you remove completely all artifacts created by the app on your database
+(including any new review you may have added for a hotel), you can run this:
+
+```
+python -m setup.cleanup-delete-all-collections
+```
+
 ## Development
 
 Make sure you `pip install -r requirements-dev.txt` as well.
@@ -170,3 +179,4 @@ mypy .
 - Recheck the not-to-be-repeated init setup steps
 - Fix: when searching hotels with empty fields, goes back to "login" page
 - Replace github prebuilds with the "project settings" (the former is deprecated now)
+- Rewrite the summarization by factoring something like this: https://python.langchain.com/docs/use_cases/summarization/#option-1.-stuff (there are three `chain.invoke(...)` in this code now)

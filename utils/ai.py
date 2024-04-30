@@ -7,6 +7,7 @@ from langchain_astradb.cache import AstraDBCache
 from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_openai.llms import OpenAI
 
+from common_constants import LLM_CACHE_COLLECTION_NAME
 from utils.db import get_astra_credentials
 
 LLM_PROVIDER = "OpenAI"
@@ -40,6 +41,7 @@ def enable_llm_cache() -> None:
     astra_credentials = get_astra_credentials()
     set_llm_cache(
         AstraDBCache(
+            collection_name=LLM_CACHE_COLLECTION_NAME,
             api_endpoint=astra_credentials.api_endpoint,
             token=astra_credentials.token,
             namespace=astra_credentials.namespace,
