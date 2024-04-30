@@ -2,6 +2,7 @@ image: gitpod/workspace-python-3.10
 tasks:
   - name: app-console
     before: |
+      sudo apt install npm
       cd /workspace/langchain-astrapy-hotels-app/client
       npm install
     command: |
