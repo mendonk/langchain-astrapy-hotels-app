@@ -1,25 +1,21 @@
-import os
-import sys
-import json
 import argparse
-import pandas as pd
-from itertools import groupby
+import json
+import os
 from typing import Dict, List
-import concurrent.futures
 
-from setup.embedding_dump import deflate_embeddings_map
-from setup.setup_constants import EMBEDDING_FILE_NAME, HOTEL_REVIEW_FILE_NAME
-
-from utils.db import get_astra_db_client
-from utils.ai import EMBEDDING_DIMENSION
-from utils.reviews import format_review_content_for_embedding, get_review_vectorstore
-
+import pandas as pd
 
 # We create an ad-hoc "Embeddings" class, sitting on the precalculated embeddings,
 # to perform all these insertions idiomatically through the LangChain
 # abstraction. This is to avoid having to work at the astrapy level
 # while still taking advantage of the stored json with precalculated vectors.
-from langchain.embeddings.base import Embeddings
+from langchain_core.embeddings import Embeddings
+
+from setup.embedding_dump import deflate_embeddings_map
+from setup.setup_constants import EMBEDDING_FILE_NAME, HOTEL_REVIEW_FILE_NAME
+from utils.ai import EMBEDDING_DIMENSION
+from utils.db import get_astra_credentials
+from utils.reviews import format_review_content_for_embedding, get_review_vectorstore
 
 
 class JustPreCalculatedEmbeddings(Embeddings):
@@ -37,7 +33,9 @@ class JustPreCalculatedEmbeddings(Embeddings):
             return self.precalc_dict[text]
         else:
             # this happens from LangChain when creating the store:
-            print(f"** [JustPreCalculatedEmbeddings] INFO: embed request for '{text}'. Returning moot results")
+            print(
+                f"** [JustPreCalculatedEmbeddings] INFO: embed request for '{text}'. Returning moot results"
+            )
             return [0.0] * EMBEDDING_DIMENSION
 
     async def aembed_query(self, text: str) -> List[float]:
@@ -49,8 +47,8 @@ DEFAULT_CONCURRENT_BATCHES = 50
 
 
 if __name__ == "__main__":
-    astra_db_client = get_astra_db_client()
-    #
+    astra_credentials = get_astra_credentials()
+
     parser = argparse.ArgumentParser(
         description="Store reviews with embeddings to Astra DB vector collection"
     )
@@ -62,7 +60,6 @@ if __name__ == "__main__":
         default=DEFAULT_CONCURRENT_BATCHES,
     )
     args = parser.parse_args()
-
 
     embedding_file_path = os.path.join(this_dir, EMBEDDING_FILE_NAME)
     if os.path.isfile(embedding_file_path):
@@ -85,7 +82,12 @@ if __name__ == "__main__":
     }
     c_embeddings = JustPreCalculatedEmbeddings(precalc_dict=precalc_text_to_vector_map)
 
-    review_vectorstore = get_review_vectorstore(embeddings=c_embeddings, astra_db_client=astra_db_client)
+    review_vectorstore = get_review_vectorstore(
+        embeddings=c_embeddings,
+        api_endpoint=astra_credentials.api_endpoint,
+        token=astra_credentials.token,
+        namespace=astra_credentials.namespace,
+    )
 
     eligibles = [
         {
@@ -103,10 +105,12 @@ if __name__ == "__main__":
         if row["id"] in enrichment
     ]
 
-    texts, metadatas, ids = zip(*[
-        (itm["text"], itm["metadata"], itm["id"])
-        for itm in eligibles
-    ])
+    _texts, _metadatas, _ids = zip(
+        *[(itm["text"], itm["metadata"], itm["id"]) for itm in eligibles]
+    )
+    texts = list(_texts)
+    metadatas = list(_metadatas)
+    ids = list(_ids)
 
     inserted_ids = review_vectorstore.add_texts(
         texts=texts,
@@ -115,4 +119,6 @@ if __name__ == "__main__":
         batch_concurrency=args.c,
     )
 
-    print(f"\n[2-populate-review-vector-collection.py] Finished. {len(inserted_ids)} rows written.")
+    print(
+        f"\n[2-populate-review-vector-collection.py] Finished. {len(inserted_ids)} rows written."
+    )

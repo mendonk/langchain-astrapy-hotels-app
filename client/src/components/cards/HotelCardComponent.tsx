@@ -88,9 +88,11 @@ const HotelCardComponent = (props: HotelCardProps) => {
           Details
         </MDBBtn>
       </MDBCardBody>
-      <MDBCardFooter>
-        <small className='text-muted'>{hotel.city}, {hotel.country} / {hotel.num_reviews} review{(hotel.num_reviews !== 1) ? "s" : ""}</small>
-      </MDBCardFooter>
+      { (hotel.review_count) && <>
+        <MDBCardFooter>
+          <small className='text-muted'>{hotel.city}, {hotel.country} / {hotel.review_count.count}{(hotel.review_count.at_ceiling) ? "+" : ""} review{(hotel.review_count.count !== 1) ? "s" : ""}</small>
+        </MDBCardFooter>
+      </> }
     </MDBCard>
   </MDBCol> );
 }

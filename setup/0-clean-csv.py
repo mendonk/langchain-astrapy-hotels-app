@@ -1,15 +1,15 @@
 import os
+from typing import cast
 
-import random
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 from setup.setup_constants import (
     HOTEL_REVIEW_FILE_NAME,
-    RAW_REVIEW_SOURCE_FILE_NAME,
     MAX_REVIEW_TEXT_LENGTH,
     MAX_REVIEW_TITLE_LENGTH,
+    RAW_REVIEW_SOURCE_FILE_NAME,
 )
-
 from utils.reviews import generate_review_id
 
 # Script that cleans up the raw CSV data and stores it in a new CSV:
@@ -71,8 +71,8 @@ if __name__ == "__main__":
         DISCARDABLE_ENDING_WITH_SPACE = "... More"
         DISCARDABLE_ENDING_WITHOUT_SPACE = "...More"
 
-        def clean_review_text(row):
-            text0 = row["text"]
+        def clean_review_text(row: pd.Series) -> str:
+            text0 = cast(str, row["text"])
             #
             if text0.find(DISCARDABLE_ENDING_WITH_SPACE) > -1:
                 text1 = text0[: text0.find(DISCARDABLE_ENDING_WITH_SPACE)]
@@ -86,11 +86,11 @@ if __name__ == "__main__":
             # sanitize for extremely long texts
             return text2[:MAX_REVIEW_TEXT_LENGTH]
 
-        def clean_review_title(row):
-            title0 = row["title"]
+        def clean_review_title(row: pd.Series) -> str:
+            title0 = cast(str, row["title"])
             return title0[:MAX_REVIEW_TITLE_LENGTH]
 
-        def review_id(row):
+        def review_id(row: pd.Series) -> str:
             return generate_review_id()
 
         renamed_csv["title"] = renamed_csv["title"].fillna("(No title)")

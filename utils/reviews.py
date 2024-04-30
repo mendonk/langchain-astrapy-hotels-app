@@ -1,41 +1,52 @@
 """Utilities to manipulate reviews"""
+
+import datetime
 import random
-import uuid, datetime
-from langchain.vectorstores import AstraDB as LCAstraDB
+import uuid
+from typing import List, Optional
+
+import astrapy
+import langchain_core
+from langchain_astradb.vectorstores import AstraDBVectorStore
 
 from common_constants import (
     FEATURED_VOTE_THRESHOLD,
-    REVIEWS_COLLECTION_NAME,
+    MAX_NUM_REVIEWS_TO_COUNT,
     REVIEW_VECTOR_COLLECTION_NAME,
+    REVIEWS_COLLECTION_NAME,
 )
-from utils.models import HotelReview, UserProfile
-from utils.dates import datetime_to_json_block, restore_doc_dates
 from utils.ai import get_embeddings
-from utils.db import get_astra_db_client
-
-from typing import List
+from utils.db import get_astra_credentials, get_collection
+from utils.models import CappedCounter, HotelReview
 
 # LangChain VectorStore abstraction to interact with the vector database
 review_vectorstore = None
 
 
-def get_review_vectorstore(embeddings, astra_db_client):
+def get_review_vectorstore(
+    embeddings: langchain_core.embeddings.Embeddings,
+    api_endpoint: str,
+    token: str,
+    namespace: Optional[str],
+) -> AstraDBVectorStore:
     global review_vectorstore
     if review_vectorstore is None:
-        review_vectorstore = LCAstraDB(
+        review_vectorstore = AstraDBVectorStore(
             embedding=embeddings,
             collection_name=REVIEW_VECTOR_COLLECTION_NAME,
-            astra_db_client=astra_db_client,
+            api_endpoint=api_endpoint,
+            token=token,
+            namespace=namespace,
         )
     return review_vectorstore
 
 
 # ### SELECTING REVIEWS
 
+
 # Entry point to select reviews for the general (base) hotel summary
 def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
-    astra_db_client = get_astra_db_client()
-    review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
+    review_col = get_collection(REVIEWS_COLLECTION_NAME)
 
     review_dict = {}
 
@@ -53,11 +64,9 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             "rating": 1,
             "date_added": 1,
         },
-        options={
-            "limit": 3,
-        },
-    )["data"]["documents"]
-    recent_review_docs = [restore_doc_dates(doc) for doc in _recent_review_docs]
+        limit=3,
+    )
+    recent_review_docs = list(_recent_review_docs)
 
     for recent_review_doc in recent_review_docs:
         review_dict[recent_review_doc["_id"]] = HotelReview(
@@ -65,7 +74,7 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             title=recent_review_doc["title"],
             body=recent_review_doc["body"],
             rating=recent_review_doc["rating"],
-       )
+        )
 
     _featured_review_docs = review_col.find(
         filter={
@@ -82,11 +91,9 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             "rating": 1,
             "date_added": 1,
         },
-        options={
-            "limit": 3,
-        },
-    )["data"]["documents"]
-    featured_review_docs = [restore_doc_dates(doc) for doc in _featured_review_docs]
+        limit=3,
+    )
+    featured_review_docs = list(_featured_review_docs)
 
     for featured_review_doc in featured_review_docs:
         review_dict[featured_review_doc["_id"]] = HotelReview(
@@ -94,7 +101,7 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
             title=featured_review_doc["title"],
             body=featured_review_doc["body"],
             rating=featured_review_doc["rating"],
-       )
+        )
 
     return list(review_dict.values())
 
@@ -102,10 +109,12 @@ def select_general_hotel_reviews(hotel_id: str) -> List[HotelReview]:
 def select_hotel_reviews_for_user(
     hotel_id: str, user_travel_profile_summary: str
 ) -> List[HotelReview]:
-    astra_db_client = get_astra_db_client()
+    astra_credentials = get_astra_credentials()
     review_store = get_review_vectorstore(
         embeddings=get_embeddings(),
-        astra_db_client=astra_db_client,
+        token=astra_credentials.token,
+        api_endpoint=astra_credentials.api_endpoint,
+        namespace=astra_credentials.namespace,
     )
 
     review_data = review_store.similarity_search_with_score_id(
@@ -120,7 +129,7 @@ def select_hotel_reviews_for_user(
             body=extract_review_body_from_doc_text(
                 review_doc.page_content, review_doc.metadata["title"]
             ),
-            rating=float(review_doc.metadata["rating"]),
+            rating=int(review_doc.metadata["rating"]),
             id=review_id,
         )
         for review_doc, _, review_id in review_data
@@ -129,19 +138,23 @@ def select_hotel_reviews_for_user(
     return reviews
 
 
-def select_review_count_by_hotel(hotel_id: str) -> int:
-    astra_db_client = get_astra_db_client()
-    review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
+def select_review_count_by_hotel(hotel_id: str) -> CappedCounter:
+    review_col = get_collection(REVIEWS_COLLECTION_NAME)
 
-    return len(list(review_col.paginated_find(
-        filter={
-            "hotel_id": hotel_id,
-        },
-        # Current workaround to "get me just _id" projection:
-        projection={
-            "not_a_field": 1,
-        }
-    )))
+    try:
+        num_reviews = review_col.count_documents(
+            filter={
+                "hotel_id": hotel_id,
+            },
+            upper_bound=MAX_NUM_REVIEWS_TO_COUNT,
+        )
+        count = CappedCounter(count=num_reviews)
+    except astrapy.exceptions.TooManyDocumentsToCountException:
+        count = CappedCounter(
+            count=MAX_NUM_REVIEWS_TO_COUNT,
+            at_ceiling=True,
+        )
+    return count
 
 
 # Extracts the review body from the text found in the document,
@@ -153,13 +166,14 @@ def extract_review_body_from_doc_text(review_doc_text: str, review_title: str) -
 
 # ### ADDING REVIEWS
 
+
 # Entry point for when we want to add a review
 # - Generates an id for the new review
 # - Stores the review in the non-vectorised collection
 # - Embeds the review and then stores it in the vectorised collection
 def insert_review_for_hotel(
     hotel_id: str, review_title: str, review_body: str, review_rating: int
-):
+) -> None:
     review_id = generate_review_id()
     insert_into_reviews_collection(
         hotel_id, review_id, review_title, review_body, review_rating
@@ -169,7 +183,7 @@ def insert_review_for_hotel(
     )
 
 
-def generate_review_id():
+def generate_review_id() -> str:
     return uuid.uuid4().hex
 
 
@@ -191,22 +205,23 @@ def insert_into_reviews_collection(
     review_title: str,
     review_body: str,
     review_rating: int,
-):
-    astra_db_client = get_astra_db_client()
-    review_col = astra_db_client.collection(REVIEWS_COLLECTION_NAME)
+) -> None:
+    review_col = get_collection(REVIEWS_COLLECTION_NAME)
 
     date_added = datetime.datetime.now()
     featured = choose_featured(random.randint(1, 21))
 
-    review_col.insert_one({
-        "_id": review_id,
-        "hotel_id": hotel_id,
-        "date_added": datetime_to_json_block(date_added),
-        "title": review_title,
-        "body": review_body,
-        "rating": review_rating,
-        "featured": featured,
-    })
+    review_col.insert_one(
+        {
+            "_id": review_id,
+            "hotel_id": hotel_id,
+            "date_added": date_added,
+            "title": review_title,
+            "body": review_body,
+            "rating": review_rating,
+            "featured": featured,
+        }
+    )
 
 
 # Inserts a new review into the vectorised reviews collection,
@@ -218,10 +233,13 @@ def insert_into_review_vector_collection(
     review_title: str,
     review_body: str,
     review_rating: int,
-):
+) -> None:
+    astra_credentials = get_astra_credentials()
     review_store = get_review_vectorstore(
         embeddings=get_embeddings(),
-        astra_db_client=get_astra_db_client(),
+        token=astra_credentials.token,
+        api_endpoint=astra_credentials.api_endpoint,
+        namespace=astra_credentials.namespace,
     )
 
     review_metadata = {

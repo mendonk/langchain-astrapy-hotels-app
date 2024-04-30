@@ -1,13 +1,12 @@
-from utils.db import get_astra_db_client
+from typing import List, Optional
 
 from common_constants import HOTELS_COLLECTION_NAME
-from typing import List, Optional
+from utils.db import get_collection
 from utils.models import Hotel
 
 
 def find_hotels_by_location(city: str, country: str) -> List[Hotel]:
-    astra_db_client = get_astra_db_client()
-    hotels_col = astra_db_client.collection(HOTELS_COLLECTION_NAME)
+    hotels_col = get_collection(HOTELS_COLLECTION_NAME)
 
     hotel_docs = hotels_col.find(
         filter={
@@ -18,10 +17,8 @@ def find_hotels_by_location(city: str, country: str) -> List[Hotel]:
             "name": 1,
             "_id": 1,
         },
-        options={
-            "limit": 15,
-        },
-    )["data"]["documents"]
+        limit=15,
+    )
 
     hotels = [
         Hotel(
@@ -37,8 +34,7 @@ def find_hotels_by_location(city: str, country: str) -> List[Hotel]:
 
 
 def find_hotel_by_id(hotel_id: str) -> Optional[Hotel]:
-    astra_db_client = get_astra_db_client()
-    hotels_col = astra_db_client.collection(HOTELS_COLLECTION_NAME)
+    hotels_col = get_collection(HOTELS_COLLECTION_NAME)
 
     hotel_doc = hotels_col.find_one(
         filter={
@@ -50,7 +46,7 @@ def find_hotel_by_id(hotel_id: str) -> Optional[Hotel]:
             "name": 1,
             "_id": 1,
         },
-    )["data"]["document"]
+    )
 
     if hotel_doc is not None:
         return Hotel(

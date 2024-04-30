@@ -18,7 +18,7 @@ done
 echo -e "\nOK"
 echo -e "ASTRA_DB_API_ENDPOINT=\"${API_ENDPOINT}\"\n" >> .env
 
-echo -n "Enter your Astra DB keyspace (*optional*, you can probably leave to default): "
+echo -n "Enter your Astra DB namespace (*optional*, you can probably leave to default): "
 read KEYSPACE
 echo -e "\nOK"
 if [ ! -z "${KEYSPACE}" ]; then

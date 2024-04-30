@@ -1,13 +1,12 @@
 import os
-
 from typing import List
 
-from langchain.prompts import PromptTemplate
-from langchain.docstore.document import Document
 from langchain.chains.summarize import load_summarize_chain
+from langchain.docstore.document import Document
+from langchain.prompts import PromptTemplate
+
 from utils.ai import get_llm
 from utils.models import HotelReview
-
 
 _linestart = "- "
 
@@ -16,8 +15,11 @@ def _split_bulletpoints(text: str) -> List[str]:
     """
     Parse the LLM bullet-point returned stringy blob into a list of stripped items.
     """
-    lines = [l.strip() for l in text.split("\n") if l.strip()]
-    bplines = [l[len(_linestart):] if l.startswith(_linestart) else l for l in lines]
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    bplines = [
+        line[len(_linestart) :] if line.startswith(_linestart) else line
+        for line in lines
+    ]
     return bplines
 
 
@@ -25,7 +27,7 @@ def _split_bulletpoints(text: str) -> List[str]:
 # TODO improve the prompt. Also rename this function with a clearer name.
 def summarize_reviews_for_user(
     reviews: List[HotelReview], travel_profile_summary: str
-) -> str:
+) -> List[str]:
     summarizing_llm = get_llm()
 
     concatenated_reviews = "\n".join(review.body for review in reviews)
@@ -56,13 +58,13 @@ def summarize_reviews_for_user(
 
     chain = load_summarize_chain(llm=summarizing_llm, chain_type="stuff")
     docs = [Document(page_content=populated_prompt)]
-    return _split_bulletpoints(chain.run(docs))
+    return _split_bulletpoints(chain.invoke(docs))
 
 
 # Calls the LLM to generate a concise summary of the given reviews for a hotel.
 # This is a general, base summary for the hotel and is not user-specific.
 # TODO improve the prompt. Also rename this function with a clearer name.
-def summarize_reviews_for_hotel(reviews: List[HotelReview]) -> str:
+def summarize_reviews_for_hotel(reviews: List[HotelReview]) -> List[str]:
     summarizing_llm = get_llm()
 
     concatenated_reviews = "\n".join(review.body for review in reviews)
@@ -89,4 +91,4 @@ def summarize_reviews_for_hotel(reviews: List[HotelReview]) -> str:
 
     chain = load_summarize_chain(llm=summarizing_llm, chain_type="stuff")
     docs = [Document(page_content=populated_prompt)]
-    return _split_bulletpoints(chain.run(docs))
+    return _split_bulletpoints(chain.invoke(docs))

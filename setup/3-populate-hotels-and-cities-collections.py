@@ -1,26 +1,33 @@
 import os
 
+import astrapy
 import pandas as pd
 
-from common_constants import HOTELS_COLLECTION_NAME, CITIES_COLLECTION_NAME
-from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERTION_BATCH_SIZE
-from utils.db import get_astra_db_client
-from utils.batching import batch_iterable
-
+from common_constants import CITIES_COLLECTION_NAME, HOTELS_COLLECTION_NAME
+from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERT_MANY_CONCURRENCY
+from utils.db import get_database
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
-astra_db_client = get_astra_db_client()
+database = get_database()
 
 
-def create_hotel_collection():
-    return astra_db_client.create_collection(HOTELS_COLLECTION_NAME)
+def create_hotel_collection() -> astrapy.Collection:
+    coll: astrapy.Collection = database.create_collection(
+        HOTELS_COLLECTION_NAME,
+        indexing={"allow": ["_id", "city", "country"]},
+    )
+    return coll
 
 
-def create_city_collection():
-    return astra_db_client.create_collection(CITIES_COLLECTION_NAME)
+def create_city_collection() -> astrapy.Collection:
+    coll: astrapy.Collection = database.create_collection(
+        CITIES_COLLECTION_NAME,
+        indexing={"deny": ["*"]},
+    )
+    return coll
 
 
-def populate_city_collection_from_csv(city_col):
+def populate_city_collection_from_csv(city_col: astrapy.Collection) -> None:
     hotel_review_file_path = os.path.join(this_dir, HOTEL_REVIEW_FILE_NAME)
     hotel_review_data = pd.read_csv(hotel_review_file_path)
     city_centres = pd.DataFrame(
@@ -41,7 +48,6 @@ def populate_city_collection_from_csv(city_col):
     )
     city_centres_df = city_centres.groupby(["country", "city"], as_index=False).mean()
 
-
     docs_to_insert = (
         {
             # our _id will be '{country}/{city}' consistently
@@ -54,14 +60,18 @@ def populate_city_collection_from_csv(city_col):
         }
         for _, row in city_centres_df.iterrows()
     )
-    for doc_batch in batch_iterable(docs_to_insert, INSERTION_BATCH_SIZE):
-        _docs = list(doc_batch)
-        city_col.insert_many(_docs)
+    insert_result = city_col.insert_many(
+        docs_to_insert,
+        ordered=False,
+        concurrency=INSERT_MANY_CONCURRENCY,
+    )
 
-    print(f"[3-populate-hotels-and-cities-collections.py] Inserted {len(city_centres_df)} cities")
+    print(
+        f"[3-populate-hotels-and-cities-collections.py] Inserted {len(insert_result.inserted_ids)} cities"
+    )
 
 
-def populate_hotel_collection_from_csv(hotel_col):
+def populate_hotel_collection_from_csv(hotel_col: astrapy.Collection) -> None:
     hotel_review_file_path = os.path.join(this_dir, HOTEL_REVIEW_FILE_NAME)
     hotel_review_data = pd.read_csv(hotel_review_file_path)
     chosen_columns = pd.DataFrame(
@@ -100,11 +110,15 @@ def populate_hotel_collection_from_csv(hotel_col):
         }
         for _, row in hotel_df.iterrows()
     )
-    for doc_batch in batch_iterable(docs_to_insert, INSERTION_BATCH_SIZE):
-        _docs = list(doc_batch)
-        hotel_col.insert_many(_docs)
+    insert_result = hotel_col.insert_many(
+        docs_to_insert,
+        ordered=False,
+        concurrency=INSERT_MANY_CONCURRENCY,
+    )
 
-    print(f"[3-populate-hotels-and-cities-collections.py] Inserted {len(hotel_df)} hotels")
+    print(
+        f"[3-populate-hotels-and-cities-collections.py] Inserted {len(insert_result.inserted_ids)} hotels"
+    )
 
 
 if __name__ == "__main__":

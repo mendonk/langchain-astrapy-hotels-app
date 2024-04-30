@@ -16,16 +16,16 @@ The demo features:
 
 Tech stack:
 
-- [Astra DB](https://docs.datastax.com/en/astra/astra-db-vector/) as the vector database;
+- [Astra DB](https://docs.datastax.com/en/astra/astra-db-vector/index.html) as the vector database;
 - OpenAI for the LLM and the embeddings;
 - React+Typescript for the client;
-- FastAPI, LangChain and [AstraPy](https://github.com/datastax/astrapy/#readme) for the API.
+- FastAPI, [RAGStack](https://docs.datastax.com/en/ragstack/docs/index.html), LangChain and [AstraPy](https://docs.datastax.com/en/astra/astra-db-vector/api-reference/overview.html#python) for the API.
 
 ## Prerequisites
 
 You need:
 
-- an [Astra DB](https://docs.datastax.com/en/astra/astra-db-vector/) Vector Database (free tier is fine!). Find and copy, from the Astra UI, the two required connection credentials: the **API Endpoint** (e.g. `https://....apps.astra.datastax.com`) and the **Token** (`AstraCS:...`).
+- an [Astra DB](https://docs.datastax.com/en/astra/astra-db-vector/) Database (free tier is fine!). Find and copy, from the Astra UI, the two required connection credentials: the **API Endpoint** (e.g. `https://....apps.astra.datastax.com`) and the **Token** (`AstraCS:...`).
 - an **OpenAI API Key**. (More info [here](https://cassio.org/start_here/#llm-access), note that out-of-the-box this demo supports OpenAI unless you tinker with the code.)
 
 </details>
@@ -38,7 +38,7 @@ Click this button, confirm opening of the workspace
 instructions will show up in the console below, where you'll have
 to provide connection details and OpenAI key when prompted.
 
-In the meantime, the app will open in the top panel.
+In the meantime, the app will open in the top panel. **We recommend opening the app in a new browser tab** for a better view, using the link that will be provided in the bottom console once everything is ready.
 
 <a href="https://gitpod.io/#https://github.com/hemidactylus/langchain-astrapy-hotels-app"><img src="images/open_in_gitpod.svg" /></a>
 
@@ -148,3 +148,25 @@ REACT_APP_API_BASE_URL="http://10.1.1.2:6789" npm start
 ```
 
 > **Note**: do not worry if you see some API requests being done twice. This is due to the React (v18+) app running in dev mode with `use strict`. See [here](https://stackoverflow.com/questions/72238175/why-useeffect-running-twice-and-how-to-handle-it-well-in-react) for more. _Behaviour in production would be all right._
+
+## Development
+
+Make sure you `pip install -r requirements-dev.txt` as well.
+
+### Checks
+
+
+```
+isort . --profile black
+black .
+mypy .
+```
+
+### TODOs
+
+- Check readme and other writeups + slides. Ensure they reflect latest
+- Check gitpod and transition to RAGStack
+- Client: migrate to consistent interfaces, remove redundant interfaces.
+- Recheck the not-to-be-repeated init setup steps
+- Fix: when searching hotels with empty fields, goes back to "login" page
+- Replace github prebuilds with the "project settings" (the former is deprecated now)

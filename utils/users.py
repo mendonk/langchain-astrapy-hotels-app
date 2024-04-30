@@ -1,20 +1,18 @@
 import json
 from typing import Union
 
-from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
-from langchain.docstore.document import Document
+from langchain_core.documents import Document
+from langchain_core.prompts import PromptTemplate
 
-from utils.db import get_astra_db_client
 from common_constants import USERS_COLLECTION_NAME
-
-from utils.models import UserProfile
 from utils.ai import get_llm
+from utils.db import get_collection
+from utils.models import UserProfile
 
 
-def read_user_profile(user_id) -> Union[UserProfile, None]:
-    astra_db_client = get_astra_db_client()
-    users_col = astra_db_client.collection(USERS_COLLECTION_NAME)
+def read_user_profile(user_id: str) -> Union[UserProfile, None]:
+    users_col = get_collection(USERS_COLLECTION_NAME)
 
     user_doc = users_col.find_one(
         filter={
@@ -25,7 +23,7 @@ def read_user_profile(user_id) -> Union[UserProfile, None]:
             "additional_preferences": 1,
             "travel_profile_summary": 1,
         },
-    )["data"]["document"]
+    )
 
     if user_doc:
         profile = UserProfile(
@@ -38,21 +36,22 @@ def read_user_profile(user_id) -> Union[UserProfile, None]:
         return None
 
 
-def write_user_profile(user_id, user_profile):
-    astra_db_client = get_astra_db_client()
-    users_col = astra_db_client.collection(USERS_COLLECTION_NAME)
+def write_user_profile(user_id: str, user_profile: UserProfile) -> None:
+    users_col = get_collection(USERS_COLLECTION_NAME)
 
-    users_col.upsert(
+    users_col.find_one_and_replace(
+        {"_id": user_id},
         {
             "_id": user_id,
             "base_preferences": json.dumps(user_profile.base_preferences),
             "additional_preferences": user_profile.additional_preferences,
-        }
+        },
+        upsert=True,
     )
 
 
 # def update_user_desc(user_id, base_preferences, additional_preferences):
-def update_user_travel_profile_summary(user_id, user_profile):
+def update_user_travel_profile_summary(user_id: str, user_profile: UserProfile) -> None:
     print("Updating automated travel preferences for user ", user_id)
 
     summarizing_llm = get_llm()
@@ -98,18 +97,15 @@ def update_user_travel_profile_summary(user_id, user_profile):
 
     chain = load_summarize_chain(llm=summarizing_llm, chain_type="stuff")
     docs = [Document(page_content=populated_prompt)]
-    travel_profile_summary = chain.run(docs)
+    travel_profile_summary = chain.invoke(docs)
 
     print("Travel profile summary:\n", travel_profile_summary)
 
     # write:
-    astra_db_client = get_astra_db_client()
-    users_col = astra_db_client.collection(USERS_COLLECTION_NAME)
+    users_col = get_collection(USERS_COLLECTION_NAME)
 
     users_col.find_one_and_update(
-        filter={
-            "_id": user_id
-        },
+        filter={"_id": user_id},
         update={
             "$set": {
                 "travel_profile_summary": travel_profile_summary,

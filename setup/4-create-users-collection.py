@@ -1,14 +1,18 @@
-from utils.db import get_astra_db_client
+import astrapy
 
 from common_constants import USERS_COLLECTION_NAME
+from utils.db import get_database
+
+database = get_database()
 
 
-astra_db_client = get_astra_db_client()
-
-
-def create_user_collection():
-    return astra_db_client.create_collection(USERS_COLLECTION_NAME)
+def create_user_collection() -> astrapy.Collection:
+    coll: astrapy.Collection = database.create_collection(
+        USERS_COLLECTION_NAME,
+        indexing={"allow": ["_id"]},
+    )
+    return coll
 
 
 if __name__ == "__main__":
-    _ = create_user_collection()
+    create_user_collection()
