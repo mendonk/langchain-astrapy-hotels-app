@@ -1,13 +1,12 @@
 import os
-
 from typing import List
 
-from langchain.prompts import PromptTemplate
-from langchain.docstore.document import Document
 from langchain.chains.summarize import load_summarize_chain
+from langchain.docstore.document import Document
+from langchain.prompts import PromptTemplate
+
 from utils.ai import get_llm
 from utils.models import HotelReview
-
 
 _linestart = "- "
 

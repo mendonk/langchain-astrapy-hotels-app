@@ -1,15 +1,14 @@
 import json
 from typing import Union
 
-from langchain_core.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain_core.documents import Document
+from langchain_core.prompts import PromptTemplate
 
-from utils.db import get_collection
 from common_constants import USERS_COLLECTION_NAME
-
-from utils.models import UserProfile
 from utils.ai import get_llm
+from utils.db import get_collection
+from utils.models import UserProfile
 
 
 def read_user_profile(user_id: str) -> Union[UserProfile, None]:

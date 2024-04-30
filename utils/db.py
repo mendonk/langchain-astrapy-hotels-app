@@ -1,12 +1,10 @@
 import os
-from typing import Dict, Optional
 from dataclasses import dataclass
-
-from dotenv import find_dotenv, load_dotenv
+from typing import Dict, Optional
 
 import astrapy
 from astrapy import DataAPIClient
-
+from dotenv import find_dotenv, load_dotenv
 
 dotenv_file = find_dotenv(".env")
 load_dotenv(dotenv_file)

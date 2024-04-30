@@ -1,22 +1,21 @@
-import os
-import json
 import argparse
-import pandas as pd
+import json
+import os
 from typing import Dict, List
 
-from setup.embedding_dump import deflate_embeddings_map
-from setup.setup_constants import EMBEDDING_FILE_NAME, HOTEL_REVIEW_FILE_NAME
-
-from utils.db import get_astra_credentials
-from utils.ai import EMBEDDING_DIMENSION
-from utils.reviews import format_review_content_for_embedding, get_review_vectorstore
-
+import pandas as pd
 
 # We create an ad-hoc "Embeddings" class, sitting on the precalculated embeddings,
 # to perform all these insertions idiomatically through the LangChain
 # abstraction. This is to avoid having to work at the astrapy level
 # while still taking advantage of the stored json with precalculated vectors.
 from langchain_core.embeddings import Embeddings
+
+from setup.embedding_dump import deflate_embeddings_map
+from setup.setup_constants import EMBEDDING_FILE_NAME, HOTEL_REVIEW_FILE_NAME
+from utils.ai import EMBEDDING_DIMENSION
+from utils.db import get_astra_credentials
+from utils.reviews import format_review_content_for_embedding, get_review_vectorstore
 
 
 class JustPreCalculatedEmbeddings(Embeddings):

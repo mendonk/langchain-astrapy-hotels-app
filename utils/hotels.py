@@ -1,7 +1,7 @@
-from utils.db import get_collection
+from typing import List, Optional
 
 from common_constants import HOTELS_COLLECTION_NAME
-from typing import List, Optional
+from utils.db import get_collection
 from utils.models import Hotel
 
 

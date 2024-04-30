@@ -1,14 +1,13 @@
-import os
-import pandas as pd
 import datetime
+import os
 
 import astrapy
+import pandas as pd
 
 from common_constants import REVIEWS_COLLECTION_NAME
 from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERT_MANY_CONCURRENCY
-from utils.reviews import choose_featured
 from utils.db import get_database
-
+from utils.reviews import choose_featured
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 database = get_database()

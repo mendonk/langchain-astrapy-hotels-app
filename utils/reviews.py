@@ -1,25 +1,23 @@
 """Utilities to manipulate reviews"""
 
-from typing import List, Optional
-
+import datetime
 import random
 import uuid
-import datetime
-
-import langchain_core
-from langchain_astradb.vectorstores import AstraDBVectorStore
+from typing import List, Optional
 
 import astrapy
+import langchain_core
+from langchain_astradb.vectorstores import AstraDBVectorStore
 
 from common_constants import (
     FEATURED_VOTE_THRESHOLD,
     MAX_NUM_REVIEWS_TO_COUNT,
-    REVIEWS_COLLECTION_NAME,
     REVIEW_VECTOR_COLLECTION_NAME,
+    REVIEWS_COLLECTION_NAME,
 )
-from utils.models import HotelReview, CappedCounter
 from utils.ai import get_embeddings
 from utils.db import get_astra_credentials, get_collection
+from utils.models import CappedCounter, HotelReview
 
 # LangChain VectorStore abstraction to interact with the vector database
 review_vectorstore = None

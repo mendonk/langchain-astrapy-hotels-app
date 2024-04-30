@@ -1,14 +1,13 @@
 import os
-from dotenv import find_dotenv, load_dotenv
 
 import langchain_core
+from dotenv import find_dotenv, load_dotenv
 from langchain.globals import set_llm_cache
-from langchain_openai.llms import OpenAI
-from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_astradb.cache import AstraDBCache
+from langchain_openai.embeddings import OpenAIEmbeddings
+from langchain_openai.llms import OpenAI
 
 from utils.db import get_astra_credentials
-
 
 LLM_PROVIDER = "OpenAI"
 

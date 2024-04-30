@@ -1,13 +1,11 @@
 import os
 
+import astrapy
 import pandas as pd
 
-import astrapy
-
-from common_constants import HOTELS_COLLECTION_NAME, CITIES_COLLECTION_NAME
+from common_constants import CITIES_COLLECTION_NAME, HOTELS_COLLECTION_NAME
 from setup.setup_constants import HOTEL_REVIEW_FILE_NAME, INSERT_MANY_CONCURRENCY
 from utils.db import get_database
-
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 database = get_database()

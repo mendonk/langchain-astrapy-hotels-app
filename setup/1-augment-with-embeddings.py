@@ -1,16 +1,15 @@
+import argparse
+import json
+import os
 from typing import Any, Dict, List
 
-import os
-import json
-import argparse
-
-import tqdm
 import pandas as pd
+import tqdm
 
-from utils.ai import get_embeddings
-from utils.reviews import format_review_content_for_embedding
 from setup.embedding_dump import compress_embeddings_map, deflate_embeddings_map
 from setup.setup_constants import EMBEDDING_FILE_NAME, HOTEL_REVIEW_FILE_NAME
+from utils.ai import get_embeddings
+from utils.reviews import format_review_content_for_embedding
 
 # Important note:
 # This step can be skipped if using the precalculated embeddings available as part of the setup assets.

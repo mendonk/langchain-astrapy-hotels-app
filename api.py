@@ -1,10 +1,11 @@
 from typing import Dict, List, Union
 
-from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 
-from utils.localCORS import permitReactLocalhostClient
 from utils.ai import enable_llm_cache
 from utils.db import get_database
+from utils.hotels import find_hotel_by_id, find_hotels_by_location
+from utils.localCORS import permitReactLocalhostClient
 from utils.models import (
     CustomizedHotelDetails,
     Hotel,
@@ -12,27 +13,23 @@ from utils.models import (
     HotelReview,
     HotelSearchRequest,
     HotelSummary,
-    UserRequest,
-    UserProfileSubmitRequest,
     UserProfile,
+    UserProfileSubmitRequest,
+    UserRequest,
 )
-from utils.review_llm import (
-    summarize_reviews_for_hotel,
-    summarize_reviews_for_user,
-)
+from utils.review_llm import summarize_reviews_for_hotel, summarize_reviews_for_user
 from utils.reviews import (
-    select_general_hotel_reviews,
     insert_review_for_hotel,
+    select_general_hotel_reviews,
     select_hotel_reviews_for_user,
     select_review_count_by_hotel,
 )
+from utils.strings import DEFAULT_TRAVEL_PROFILE_SUMMARY
 from utils.users import (
     read_user_profile,
-    write_user_profile,
     update_user_travel_profile_summary,
+    write_user_profile,
 )
-from utils.hotels import find_hotels_by_location, find_hotel_by_id
-from utils.strings import DEFAULT_TRAVEL_PROFILE_SUMMARY
 
 
 def init() -> None:
@@ -158,7 +155,9 @@ def get_customized_hotel_details(
     user_profile = read_user_profile(payload.user_id)
 
     if user_profile:
-        travel_profile_summary = user_profile.travel_profile_summary or DEFAULT_TRAVEL_PROFILE_SUMMARY
+        travel_profile_summary = (
+            user_profile.travel_profile_summary or DEFAULT_TRAVEL_PROFILE_SUMMARY
+        )
     else:
         travel_profile_summary = DEFAULT_TRAVEL_PROFILE_SUMMARY
 

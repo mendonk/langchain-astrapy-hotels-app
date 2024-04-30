@@ -1,6 +1,6 @@
-from typing import Dict, List
-import struct
 import base64
+import struct
+from typing import Dict, List
 
 from utils.ai import EMBEDDING_DIMENSION
 
@@ -13,7 +13,9 @@ def compress_embeddings_map(deflated_emb_map: Dict[str, List[float]]) -> Dict[st
     return {k: _compress_floats(v) for k, v in deflated_emb_map.items()}
 
 
-def deflate_embeddings_map(compressed_emb_map: Dict[str, str]) -> Dict[str, List[float]]:
+def deflate_embeddings_map(
+    compressed_emb_map: Dict[str, str]
+) -> Dict[str, List[float]]:
     def _deflate_floats(f_buf_str: str) -> List[float]:
         byte_buf = base64.b64decode(f_buf_str)
         return list(struct.unpack("%if" % EMBEDDING_DIMENSION, byte_buf))

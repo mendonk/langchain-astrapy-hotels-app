@@ -1,8 +1,7 @@
 import astrapy
 
-from utils.db import get_database
 from common_constants import USERS_COLLECTION_NAME
-
+from utils.db import get_database
 
 database = get_database()
 

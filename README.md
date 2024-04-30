@@ -148,3 +148,22 @@ REACT_APP_API_BASE_URL="http://10.1.1.2:6789" npm start
 ```
 
 > **Note**: do not worry if you see some API requests being done twice. This is due to the React (v18+) app running in dev mode with `use strict`. See [here](https://stackoverflow.com/questions/72238175/why-useeffect-running-twice-and-how-to-handle-it-well-in-react) for more. _Behaviour in production would be all right._
+
+## Development
+
+Make sure you `pip install -r requirements-dev.txt` as well.
+
+### Checks
+
+
+```
+isort . --profile black
+black .
+mypy .
+```
+
+### TODOs
+
+- Check readme and other writeups + slides. Ensure they reflect latest
+- Check gitpod and transition to RAGStack
+- Client: migrate to consistent interfaces, remove redundant interfaces.

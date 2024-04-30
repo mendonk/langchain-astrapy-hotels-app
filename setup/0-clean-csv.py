@@ -1,16 +1,15 @@
+import os
 from typing import cast
 
-import os
-
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 from setup.setup_constants import (
     HOTEL_REVIEW_FILE_NAME,
-    RAW_REVIEW_SOURCE_FILE_NAME,
     MAX_REVIEW_TEXT_LENGTH,
     MAX_REVIEW_TITLE_LENGTH,
+    RAW_REVIEW_SOURCE_FILE_NAME,
 )
-
 from utils.reviews import generate_review_id
 
 # Script that cleans up the raw CSV data and stores it in a new CSV:
