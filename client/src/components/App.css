@@ -26,7 +26,11 @@
 }
 
 .slideImage {
-  height: 75vh;
+  height: 70vh;
   object-position: center top;
   object-fit: scale-down;
+}
+
+li.breadcrumb-item:not(.active):not(:last-child) {
+  cursor: pointer
 }

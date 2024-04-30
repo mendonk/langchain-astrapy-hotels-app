@@ -167,3 +167,5 @@ mypy .
 - Check readme and other writeups + slides. Ensure they reflect latest
 - Check gitpod and transition to RAGStack
 - Client: migrate to consistent interfaces, remove redundant interfaces.
+- Recheck the not-to-be-repeated init setup steps
+- Fix: when searching hotels with empty fields, goes back to "login" page
