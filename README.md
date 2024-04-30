@@ -169,3 +169,4 @@ mypy .
 - Client: migrate to consistent interfaces, remove redundant interfaces.
 - Recheck the not-to-be-repeated init setup steps
 - Fix: when searching hotels with empty fields, goes back to "login" page
+- Replace github prebuilds with the "project settings" (the former is deprecated now)
