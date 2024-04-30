@@ -16,16 +16,16 @@ The demo features:
 
 Tech stack:
 
-- [Astra DB](https://docs.datastax.com/en/astra/astra-db-vector/) as the vector database;
+- [Astra DB](https://docs.datastax.com/en/astra/astra-db-vector/index.html) as the vector database;
 - OpenAI for the LLM and the embeddings;
 - React+Typescript for the client;
-- FastAPI, LangChain and [AstraPy](https://github.com/datastax/astrapy/#readme) for the API.
+- FastAPI, [RAGStack](https://docs.datastax.com/en/ragstack/docs/index.html), LangChain and [AstraPy](https://docs.datastax.com/en/astra/astra-db-vector/api-reference/overview.html#python) for the API.
 
 ## Prerequisites
 
 You need:
 
-- an [Astra DB](https://docs.datastax.com/en/astra/astra-db-vector/) Vector Database (free tier is fine!). Find and copy, from the Astra UI, the two required connection credentials: the **API Endpoint** (e.g. `https://....apps.astra.datastax.com`) and the **Token** (`AstraCS:...`).
+- an [Astra DB](https://docs.datastax.com/en/astra/astra-db-vector/) Database (free tier is fine!). Find and copy, from the Astra UI, the two required connection credentials: the **API Endpoint** (e.g. `https://....apps.astra.datastax.com`) and the **Token** (`AstraCS:...`).
 - an **OpenAI API Key**. (More info [here](https://cassio.org/start_here/#llm-access), note that out-of-the-box this demo supports OpenAI unless you tinker with the code.)
 
 </details>
@@ -38,7 +38,7 @@ Click this button, confirm opening of the workspace
 instructions will show up in the console below, where you'll have
 to provide connection details and OpenAI key when prompted.
 
-In the meantime, the app will open in the top panel.
+In the meantime, the app will open in the top panel. **We recommend opening the app in a new browser tab** for a better view, using the link that will be provided in the bottom console once everything is ready.
 
 <a href="https://gitpod.io/#https://github.com/hemidactylus/langchain-astrapy-hotels-app"><img src="images/open_in_gitpod.svg" /></a>
 
